@@ -1,0 +1,50 @@
+{
+  "name": "second-shelf",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src scripts tests",
+    "test": "tsx --test tests/domain.test.ts tests/api.test.ts tests/access.test.ts tests/review.test.ts tests/outcome-lifecycle.test.ts tests/live-proposal.test.ts tests/provider-budget.test.ts tests/serverless-jobs.test.ts tests/durable-bootstrap.test.ts tests/client-timeout.test.ts",
+    "test:e2e": "node scripts/e2e.mjs",
+    "test:personas": "node scripts/persona-e2e.mjs",
+    "test:gaps": "node scripts/gap-e2e.mjs",
+    "verify": "node scripts/verify.mjs",
+    "demo": "node scripts/demo-server.mjs",
+    "test:restore": "tsx scripts/restore-check.ts",
+    "verify:contract": "tsx scripts/contract-check.ts",
+    "code:map": "node scripts/code-map.mjs"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.9",
+    "csv-parse": "7.0.3",
+    "next": "16.4.0",
+    "pg": "^8.23.1",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/cli": "0.1.22",
+    "@types/node": "^24.0.0",
+    "@types/pg": "^8.23.1",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsqr": "1.4.0",
+    "playwright": "^1.58.0",
+    "tsx": "^4.20.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "yaml": "^2.8.0"
+  },
+  "type": "module"
+}

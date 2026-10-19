@@ -1,0 +1,3200 @@
+openapi: 3.1.0
+info:
+  title: Second Shelf proposed internal API
+  version: 0.1.0-design
+  description: Design contract only. No endpoint is implemented. Prefix /api/v1. Tenant is derived
+    from verified sessions, never trusted from request bodies. See DATA_CONTRACTS and
+    SECURITY_PRIVACY. Job result appears only on success; error only on failure. Mutation
+    idempotency stores actor/store/operation/body hash. Authentication-provider login/callback URLs
+    are configured after vendor selection and are not invented here.
+servers:
+  - url: /api/v1
+    description: Same-origin application API
+security:
+  - MerchantSession: []
+paths:
+  /demo-sessions:
+    post:
+      operationId: createDemoSession
+      summary: Create an expiring isolated synthetic tenant
+      description: Origin validation, abuse limits and server-created tenant required; sets Secure
+        HttpOnly merchant lease cookie. Resets cannot touch other tenants.
+      x-required-role: public
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoSession"
+          headers:
+            Set-Cookie:
+              description: Secure HttpOnly SameSite session-owned demo lease.
+              schema:
+                type: string
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties: {}
+              required: []
+  /session:
+    get:
+      operationId: readMerchantSession
+      summary: Read current authorized merchant context
+      description: Read current authorized merchant context
+      x-required-role: merchant
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  storeId: &a2
+                    type: string
+                    format: uuid
+                  permissions:
+                    type: array
+                    items: &a1
+                      type: string
+                      minLength: 1
+                      maxLength: 200
+                  csrfToken: *a1
+                  dataMode:
+                    type: string
+                    enum:
+                      - demo
+                      - pilot
+                required:
+                  - storeId
+                  - permissions
+                  - csrfToken
+                  - dataMode
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /inventory-imports:
+    post:
+      operationId: previewInventoryImport
+      summary: Stage and validate a CSV snapshot
+      description: Stage and validate a CSV snapshot
+      x-required-role: owner
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPreview"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+  /inventory-imports/{id}/commit:
+    post:
+      operationId: commitInventoryImport
+      summary: Activate explicitly accepted rows atomically
+      description: Activate explicitly accepted rows atomically
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision: &a3
+                  type: integer
+                  minimum: 1
+                acceptedRowNumbers:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  minItems: 1
+                  uniqueItems: true
+              required:
+                - expectedRevision
+                - acceptedRowNumbers
+  /inventory:
+    get:
+      operationId: listInventory
+      summary: List current inventory and eligibility
+      description: List current inventory and eligibility
+      x-required-role: merchant
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryPage"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: cursor
+          in: query
+          schema: *a1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+  /entities:
+    get:
+      operationId: searchEntities
+      summary: Resolve confirmed interest or inventory entity choices
+      description: Shopper may search movie/artist only. Book identity lookup requires merchant scope.
+        Provider mode and source are retained in internal receipts; rate and budget limits apply.
+      x-required-role: merchant_or_shopper
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Entity"
+                required:
+                  - items
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - movie
+              - artist
+              - book
+      security:
+        - MerchantSession: []
+        - ShopperSession: []
+  /entity-mappings/{id}:
+    patch:
+      operationId: reviewEntityMapping
+      summary: Confirm or exclude an inventory mapping
+      description: Confirm or exclude an inventory mapping
+      x-required-role: inventory_review
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision: *a3
+                status:
+                  type: string
+                  enum:
+                    - confirmed
+                    - excluded
+                entityId: *a1
+                reason: *a1
+              required:
+                - expectedRevision
+                - status
+                - reason
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      summary: List scoped campaign summaries
+      description: List scoped campaign summaries
+      x-required-role: merchant
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Campaign"
+                required:
+                  - items
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      operationId: createCampaign
+      summary: Create a draft campaign version
+      description: Create a draft campaign version
+      x-required-role: campaign_draft
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignDraft"
+  /campaigns/{id}:
+    get:
+      operationId: readCampaign
+      summary: Read a scoped campaign and version
+      description: Read a scoped campaign and version
+      x-required-role: merchant
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+    patch:
+      operationId: reviseCampaign
+      summary: Create or revise draft; approved versions are immutable
+      description: Create or revise draft; approved versions are immutable
+      x-required-role: campaign_draft
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision: *a3
+                draft:
+                  $ref: "#/components/schemas/CampaignDraft"
+              required:
+                - expectedRevision
+                - draft
+  /campaigns/{id}/plan:
+    post:
+      operationId: planCampaign
+      summary: Queue a bounded cultural proposal
+      description: Queue a bounded cultural proposal
+      x-required-role: campaign_draft
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision: *a3
+                interestIds:
+                  type: array
+                  items: *a1
+                  maxItems: 3
+              required:
+                - expectedRevision
+  /campaigns/{id}/approve:
+    post:
+      operationId: approveCampaign
+      summary: Approve campaign with revision check
+      description: Checks current inventory/rules and prior state atomically. Activation updates QR
+        destination and closes prior enrollment; never silently reassigns existing sessions.
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevisionRequest"
+  /campaigns/{id}/activate:
+    post:
+      operationId: activateCampaign
+      summary: Activate campaign with revision check
+      description: Checks current inventory/rules and prior state atomically. Activation updates QR
+        destination and closes prior enrollment; never silently reassigns existing sessions.
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevisionRequest"
+  /campaigns/{id}/retire:
+    post:
+      operationId: retireCampaign
+      summary: Retire campaign with revision check
+      description: Checks current inventory/rules and prior state atomically. Activation updates QR
+        destination and closes prior enrollment; never silently reassigns existing sessions.
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevisionRequest"
+  /rules:
+    post:
+      operationId: createRule
+      summary: Create a reviewed structured correction rule
+      description: campaignId required for campaign scope; numeric operand only for max_price_minor. Both
+        example and counterexample must validate against deterministic evaluator before enabling.
+      x-required-role: owner
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RuleInput"
+  /rules/{id}/replay:
+    post:
+      operationId: replayRule
+      summary: Replay a scoped rule against a candidate batch
+      description: Replay a scoped rule against a candidate batch
+      x-required-role: merchant
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                campaignVersionId: *a2
+              required:
+                - campaignVersionId
+  /public/campaigns/{token}:
+    get:
+      operationId: readPublicCampaign
+      summary: Read public active QR destination
+      description: Read public active QR destination
+      x-required-role: public
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicCampaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: *a1
+      security: []
+  /public/campaigns/{token}/sessions:
+    post:
+      operationId: createShopperSession
+      summary: Create or reuse scoped shopper session
+      description: Origin validated. Sets Secure HttpOnly shopper cookie. Returns CSRF token through a
+        same-origin response header. No arm assignment until eligible recommendation admission; demo
+        never enters pilot analysis.
+      x-required-role: public
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShopperSession"
+          headers:
+            X-CSRF-Token:
+              description: Scoped token required for subsequent shopper mutations.
+              schema:
+                type: string
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/IdempotencyKey"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                measurementOptIn:
+                  type: boolean
+                  description: Omit to resume the existing choice, or default to false for a new visit. Explicit
+                    changes cannot reroll an assigned experiment.
+                noticeVersion: *a1
+              required:
+                - noticeVersion
+  /shopper/recommendations:
+    post:
+      operationId: recommendBooks
+      summary: Queue an eligible assigned or unmeasured recommendation
+      description: Persist assignment before provider generation when measured. Changed interests/budget
+        are frozen during a measured experiment session; return 409 with start-unmeasured guidance
+        rather than rerolling. Exclusions can grow. Server independently recomputes eligibility.
+      x-required-role: shopper
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      security:
+        - ShopperSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecommendationRequest"
+  /shopper/events:
+    post:
+      operationId: recordShopperEvent
+      summary: Record an impression, interest or rejection
+      description: Record an impression, interest or rejection
+      x-required-role: shopper
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      security:
+        - ShopperSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                runId: *a2
+                sku: *a1
+                type:
+                  type: string
+                  enum:
+                    - impression
+                    - interest
+                    - reject
+              required:
+                - runId
+                - sku
+                - type
+  /shopper/purchase-code:
+    post:
+      operationId: issuePurchaseCode
+      summary: Issue a scoped expiring cashier-attribution code
+      description: Issue a scoped expiring cashier-attribution code
+      x-required-role: shopper
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  code: *a1
+                  expiresAt: &a4
+                    type: string
+                    format: date-time
+                required:
+                  - code
+                  - expiresAt
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      security:
+        - ShopperSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                runId: *a2
+              required:
+                - runId
+  /outcomes:
+    post:
+      operationId: verifyOutcome
+      summary: Append a merchant-verified purchase, return or correction
+      description: Only owner or outcome_verify staff may record. Purchases require an offered counter
+        code/current SKU; title and ISBN are snapshotted. Adjustments use the original in-store
+        purchase and its remaining quantity/amount, even after preference withdrawal or catalog
+        removal. Original ledger and shopper deletion remain intact. Repeated reference/type/SKU
+        returns the existing ID only for the same transaction details; changed details conflict.
+        Adjustment time follows the original purchase within seven days.
+      x-required-role: outcome_verify
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutcomeInput"
+  /campaigns/{id}/review:
+    get:
+      operationId: readWeeklyReview
+      summary: Read weekly evidence without unsupported winner claims
+      description: Read activity within UTC start inclusive / end exclusive, at most 366 days. Supply both
+        dates or neither; neither defaults to the last seven days. Assignments use assigned time,
+        runs request time, outcomes occurred time, withdrawals/decisions recorded time. Arm
+        summaries include assignments in the window. This is not a cohort conversion estimate.
+      x-required-role: merchant
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - name: periodStart
+          in: query
+          required: false
+          schema: *a4
+        - name: periodEnd
+          in: query
+          required: false
+          schema: *a4
+    post:
+      operationId: recordWeeklyDecision
+      summary: Record a weekly merchant decision and work duration
+      description: Record a weekly merchant decision and work duration
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision: *a3
+                periodStart: *a4
+                periodEnd: *a4
+                decision:
+                  type: string
+                  enum:
+                    - keep
+                    - change
+                    - retire
+                rationale: *a1
+                activeWorkSeconds: &a13
+                  type: integer
+                  minimum: 0
+              required:
+                - expectedRevision
+                - periodStart
+                - periodEnd
+                - decision
+                - rationale
+                - activeWorkSeconds
+  /campaigns/{id}/experiments:
+    post:
+      operationId: createExperiment
+      summary: Draft a preregistered experiment definition
+      description: Draft a preregistered experiment definition
+      x-required-role: owner
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperimentInput"
+  /experiments/{id}/freeze:
+    post:
+      operationId: freezeExperiment
+      summary: Freeze validated enrollment and analysis protocol
+      description: Requires authorized pilot data mode, recorded consent protocol and analysis sample-size
+        receipt. Demo freeze is simulation only. Frozen definitions cannot be edited.
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevisionRequest"
+  /campaigns/{id}/policy-proposals:
+    post:
+      operationId: proposePolicy
+      summary: Record a bounded rank-offset policy proposal
+      description: Record a bounded rank-offset policy proposal
+      x-required-role: owner
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyInput"
+  /policy-proposals/{id}/evaluate:
+    post:
+      operationId: evaluatePolicy
+      summary: Evaluate replay and preregistered held-out policy evidence
+      description: Returns insufficient_evidence when a valid prospective held-out experiment is absent;
+        historical clicks cannot invent counterfactual purchases.
+      x-required-role: owner
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision: *a3
+              required:
+                - expectedRevision
+  /policy-proposals/{id}/approve:
+    post:
+      operationId: approvePolicy
+      summary: Approve passed policy for a future version
+      description: Reject unless replay and independent frozen evaluation passed; approval never changes
+        an enrolled experiment.
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevisionRequest"
+  /jobs/{id}:
+    get:
+      operationId: readJob
+      summary: Read scoped job and permitted result
+      description: Read scoped job and permitted result
+      x-required-role: merchant_or_shopper
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+      security:
+        - MerchantSession: []
+        - ShopperSession: []
+  /exports:
+    post:
+      operationId: requestExport
+      summary: Queue private first-party data export
+      description: Queue private first-party data export
+      x-required-role: owner
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                format:
+                  type: string
+                  enum:
+                    - json
+                    - csv
+              required:
+                - format
+  /memberships:
+    post:
+      operationId: grantMembership
+      summary: Grant limited staff permissions
+      description: Issue a one-time sample access link. This verifies possession of an owner-issued
+        credential, not a real identity. No message is sent. Grant expiry, redemption and revocation
+        are enforced server-side.
+      x-required-role: owner
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembershipInvitation"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MembershipInput"
+  /memberships/{id}:
+    delete:
+      operationId: revokeMembership
+      summary: Revoke staff membership and queued authority
+      description: Revoke staff membership and queued authority
+      x-required-role: owner
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a2
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+  /store:
+    delete:
+      operationId: requestStoreDeletion
+      summary: Revoke access and queue privacy deletion
+      description: Requires recent reauthentication. No ability to target arbitrary store ID; derive
+        tenant from owner identity. Outstanding jobs cancelled and analysis invalidation scheduled.
+      x-required-role: owner
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  id: *a2
+                  status:
+                    type: string
+                    enum:
+                      - access_revoked
+                  purgeDueAt: *a4
+                required:
+                  - id
+                  - status
+                  - purgeDueAt
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                confirm:
+                  type: boolean
+                  const: true
+              required:
+                - confirm
+  /inventory/{sku}:
+    patch:
+      operationId: confirmInventorySnapshot
+      summary: Owner confirms the sample edition stock snapshot
+      description: Local demo extension; cannot change another store or use a stale revision. This does
+        not write to a POS.
+      x-required-role: owner
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema: &a15
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - expectedRevision
+                - onHand
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                onHand:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+      responses:
+        "200":
+          description: Snapshot confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /staff-sessions:
+    post:
+      operationId: redeemSampleInvitation
+      x-required-role: invitation-possession
+      parameters:
+        - &a5
+          $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                type: object
+        default: &a6
+          description: Typed validation/authentication/permission/expiry/conflict failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                inviteToken:
+                  type: string
+                  pattern: ^[a-f0-9]{64}$
+              required:
+                - inviteToken
+      security: []
+  /logout:
+    post:
+      operationId: signOutSampleBrowser
+      x-required-role: owner-or-staff
+      parameters: &a7
+        - *a5
+        - &a9
+          $ref: "#/components/parameters/CsrfToken"
+      responses:
+        "200":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                type: object
+        default: *a6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+  /shopper/session:
+    get:
+      operationId: readOwnShopperSession
+      x-required-role: shopper
+      parameters: []
+      responses:
+        "200":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                type: object
+        default: *a6
+  /shopper/new-visit:
+    post:
+      operationId: startUnmeasuredVisit
+      x-required-role: shopper
+      parameters: *a7
+      responses:
+        "201":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                type: object
+        default: *a6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: &a8
+              type: object
+              additionalProperties: false
+              properties:
+                confirm:
+                  const: true
+              required:
+                - confirm
+  /shopper/forget:
+    post:
+      operationId: forgetOwnChoices
+      x-required-role: shopper
+      parameters: *a7
+      responses:
+        "200":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                type: object
+        default: *a6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: *a8
+  /rules/{ruleId}:
+    patch:
+      operationId: updateRuleLifecycle
+      x-required-role: owner
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - *a5
+        - *a9
+      responses:
+        "200":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default: *a6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                active:
+                  type: boolean
+                reviewAt:
+                  type: string
+                  format: date-time
+              required:
+                - expectedRevision
+              anyOf:
+                - required:
+                    - active
+                - required:
+                    - reviewAt
+  /experiments/{experimentId}/end:
+    post:
+      operationId: endSampleEnrollment
+      x-required-role: owner
+      parameters:
+        - name: experimentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - *a5
+        - *a9
+      responses:
+        "200":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default: *a6
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RevisionRequest"
+  /staff/session:
+    get:
+      operationId: staff_readMerchantSession
+      summary: Read current authorized merchant context
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  storeId:
+                    type: string
+                    format: uuid
+                  permissions:
+                    type: array
+                    items: &a10
+                      type: string
+                      minLength: 1
+                      maxLength: 200
+                  csrfToken: *a10
+                  dataMode:
+                    type: string
+                    enum:
+                      - demo
+                      - pilot
+                required:
+                  - storeId
+                  - permissions
+                  - csrfToken
+                  - dataMode
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - StaffSession: []
+  /staff/inventory-imports:
+    post:
+      operationId: staff_previewInventoryImport
+      summary: Stage and validate a CSV snapshot
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportPreview"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required:
+                - file
+      security:
+        - StaffSession: []
+  /staff/inventory-imports/{id}/commit:
+    post:
+      operationId: staff_commitInventoryImport
+      summary: Activate explicitly accepted rows atomically
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                acceptedRowNumbers:
+                  type: array
+                  items:
+                    type: integer
+                    minimum: 1
+                  minItems: 1
+                  uniqueItems: true
+              required:
+                - expectedRevision
+                - acceptedRowNumbers
+      security:
+        - StaffSession: []
+  /staff/inventory:
+    get:
+      operationId: staff_listInventory
+      summary: List current inventory and eligibility
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryPage"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 200
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      security:
+        - StaffSession: []
+  /staff/entities:
+    get:
+      operationId: staff_searchEntities
+      summary: Resolve confirmed interest or inventory entity choices
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Entity"
+                required:
+                  - items
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - movie
+              - artist
+              - book
+      security:
+        - StaffSession: []
+  /staff/entity-mappings/{id}:
+    patch:
+      operationId: staff_reviewEntityMapping
+      summary: Confirm or exclude an inventory mapping
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                status:
+                  type: string
+                  enum:
+                    - confirmed
+                    - excluded
+                entityId: &a11
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                reason: *a11
+              required:
+                - expectedRevision
+                - status
+                - reason
+      security:
+        - StaffSession: []
+  /staff/campaigns:
+    get:
+      operationId: staff_listCampaigns
+      summary: List scoped campaign summaries
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Campaign"
+                required:
+                  - items
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - StaffSession: []
+    post:
+      operationId: staff_createCampaign
+      summary: Create a draft campaign version
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignDraft"
+      security:
+        - StaffSession: []
+  /staff/campaigns/{id}:
+    get:
+      operationId: staff_readCampaign
+      summary: Read a scoped campaign and version
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - StaffSession: []
+    patch:
+      operationId: staff_reviseCampaign
+      summary: Create or revise draft; approved versions are immutable
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                draft:
+                  $ref: "#/components/schemas/CampaignDraft"
+              required:
+                - expectedRevision
+                - draft
+      security:
+        - StaffSession: []
+  /staff/campaigns/{id}/plan:
+    post:
+      operationId: staff_planCampaign
+      summary: Queue a bounded cultural proposal
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "202":
+          description: Accepted job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                interestIds:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 200
+                  maxItems: 3
+              required:
+                - expectedRevision
+      security:
+        - StaffSession: []
+  /staff/outcomes:
+    post:
+      operationId: staff_verifyOutcome
+      summary: Append a merchant-verified purchase, return or correction
+      description: Only owner or outcome_verify staff may record. Purchases require an offered counter
+        code/current SKU; title and ISBN are snapshotted. Adjustments use the original in-store
+        purchase and its remaining quantity/amount, even after preference withdrawal or catalog
+        removal. Original ledger and shopper deletion remain intact. Repeated reference/type/SKU
+        returns the existing ID only for the same transaction details; changed details conflict.
+        Adjustment time follows the original purchase within seven days.
+      x-required-role: staff-permission
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutcomeInput"
+      security:
+        - StaffSession: []
+  /staff/campaigns/{id}/review:
+    get:
+      operationId: staff_readWeeklyReview
+      summary: Read weekly evidence without unsupported winner claims
+      description: Read activity within UTC start inclusive / end exclusive, at most 366 days. Supply both
+        dates or neither; neither defaults to the last seven days. Assignments use assigned time,
+        runs request time, outcomes occurred time, withdrawals/decisions recorded time. Arm
+        summaries include assignments in the window. This is not a cohort conversion estimate.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: periodStart
+          in: query
+          required: false
+          schema: &a12
+            type: string
+            format: date-time
+        - name: periodEnd
+          in: query
+          required: false
+          schema: *a12
+      security:
+        - StaffSession: []
+  /staff/jobs/{id}:
+    get:
+      operationId: staff_readJob
+      summary: Read scoped job and permitted result
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        default:
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
+            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
+            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - StaffSession: []
+  /staff/inventory/{sku}:
+    patch:
+      operationId: staff_confirmInventorySnapshot
+      summary: Owner confirms the sample edition stock snapshot
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      x-required-role: staff-permission
+      parameters:
+        - name: sku
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - expectedRevision
+                - onHand
+              properties:
+                expectedRevision:
+                  type: integer
+                  minimum: 1
+                onHand:
+                  type: integer
+                  minimum: 0
+                  maximum: 10000
+      responses:
+        "200":
+          description: Snapshot confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ack"
+        default:
+          description: Typed failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      security:
+        - StaffSession: []
+  /staff/logout:
+    post:
+      operationId: staff_signOutSampleBrowser
+      x-required-role: staff-permission
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/CsrfToken"
+      responses:
+        "200":
+          description: Sample-mode success
+          content:
+            application/json:
+              schema:
+                type: object
+        default:
+          description: Typed validation/authentication/permission/expiry/conflict failure
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only
+        operations are denied.
+      security:
+        - StaffSession: []
+  /health:
+    get:
+      operationId: readLocalHealth
+      summary: Check application identity and initialized local database
+      description: Returns success only after database initialization and a SELECT 1 query. This does not
+        verify live providers or public release.
+      x-required-role: public
+      responses:
+        "200":
+          description: Local application and database ready
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  app:
+                    type: string
+                    const: Second Shelf
+                  version:
+                    type: string
+                  dataMode:
+                    type: string
+                    const: demo
+                  providerMode:
+                    type: string
+                    enum:
+                      - fixture
+                      - live
+                      - unconfigured
+                  persistence:
+                    type: string
+                    enum: [embedded-postgresql, hosted-postgresql]
+                  databaseReady:
+                    type: boolean
+                    const: true
+                  publicRelease:
+                    type: string
+                    const: not-verified
+                required:
+                  - app
+                  - version
+                  - dataMode
+                  - providerMode
+                  - persistence
+                  - databaseReady
+                  - publicRelease
+        default:
+          description: Typed failure; database initialization is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    MerchantSession:
+      type: apiKey
+      in: cookie
+      name: ss_merchant
+      description: Verified merchant identity or isolated synthetic demo lease; role checks per operation.
+    ShopperSession:
+      type: apiKey
+      in: cookie
+      name: ss_shopper
+      description: Opaque server-scoped shopper session; no merchant rights.
+    StaffSession:
+      type: apiKey
+      in: cookie
+      name: ss_staff
+      description: Scoped expiring sample credential; real identity-provider verification remains unconfigured.
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 128
+    CsrfToken:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      schema: *a1
+  schemas:
+    Error:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          type: string
+          enum:
+            - INVALID_INPUT
+            - UNAUTHENTICATED
+            - FORBIDDEN
+            - NOT_FOUND
+            - CONFLICT
+            - STALE_INVENTORY
+            - NO_ELIGIBLE_ITEMS
+            - PROVIDER_UNAVAILABLE
+            - RATE_LIMITED
+            - BUDGET_EXHAUSTED
+            - CONFIGURATION_NOT_READY
+            - INSUFFICIENT_EVIDENCE
+        message: *a1
+        requestId: *a2
+        retryable:
+          type: boolean
+      required:
+        - code
+        - message
+        - requestId
+        - retryable
+    Ack:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *a2
+        revision: *a3
+      required:
+        - id
+        - revision
+    DemoSession:
+      type: object
+      additionalProperties: false
+      properties:
+        storeId: *a2
+        expiresAt: *a4
+        dataMode:
+          type: string
+          enum:
+            - demo
+        providerMode:
+          type: string
+          enum:
+            - live
+            - fixture
+            - unconfigured
+      required:
+        - storeId
+        - expiresAt
+        - dataMode
+        - providerMode
+    ImportPreview:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *a2
+        status:
+          type: string
+          enum:
+            - staged
+            - validated
+            - rejected
+        rowCount: *a13
+        acceptedRowNumbers:
+          type: array
+          items: *a13
+        errors:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              row: *a13
+              field: *a1
+              message: *a1
+            required:
+              - row
+              - field
+              - message
+        baseRevision:
+          type: integer
+          minimum: 1
+      required:
+        - id
+        - status
+        - rowCount
+        - acceptedRowNumbers
+        - errors
+        - baseRevision
+    InventoryItem:
+      type: object
+      additionalProperties: false
+      properties:
+        sku: *a1
+        isbn13:
+          type: string
+          pattern: ^[0-9]{13}$
+        title: *a1
+        author: *a1
+        format: *a1
+        language: *a1
+        priceMinor: *a13
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        effectiveQuantity: *a13
+        shelf: *a1
+        observedAt: *a4
+        mappingStatus:
+          type: string
+          enum:
+            - unresolved
+            - suggested
+            - confirmed
+            - excluded
+        eligible:
+          type: boolean
+        mappingId:
+          type: string
+          format: uuid
+        onHand: &a14
+          type: integer
+          minimum: 0
+        unitsSold90d: *a14
+        entityId: *a15
+        tags:
+          type: array
+          items: *a15
+        color: *a15
+        revision:
+          type: integer
+          minimum: 1
+      required:
+        - sku
+        - isbn13
+        - title
+        - author
+        - format
+        - language
+        - priceMinor
+        - currency
+        - effectiveQuantity
+        - shelf
+        - observedAt
+        - mappingStatus
+        - eligible
+        - mappingId
+    InventoryPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItem"
+        nextCursor:
+          type:
+            - string
+            - "null"
+        revision: *a3
+      required:
+        - items
+        - nextCursor
+        - revision
+    Entity:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *a1
+        name: *a1
+        type:
+          type: string
+          enum:
+            - movie
+            - artist
+            - book
+        tags:
+          type: array
+          items: *a15
+      required:
+        - id
+        - name
+        - type
+    CampaignDraft:
+      type: object
+      additionalProperties: false
+      properties:
+        title: *a1
+        candidateSkus:
+          type: array
+          items: *a1
+          minItems: 1
+          maxItems: 500
+        ruleRevisionIds:
+          type: array
+          items: *a2
+      required:
+        - title
+        - candidateSkus
+        - ruleRevisionIds
+    Campaign:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *a2
+        versionId: *a2
+        revision: *a3
+        title: *a1
+        state:
+          type: string
+          enum:
+            - draft
+            - approved
+            - active
+            - superseded
+            - retired
+        candidateSkus:
+          type: array
+          items: *a1
+        ruleRevisionIds:
+          type: array
+          items: *a2
+        inventoryImportId: *a2
+        dataMode:
+          type: string
+          enum:
+            - demo
+            - pilot
+        qrUrl:
+          type:
+            - string
+            - "null"
+          format: uri
+        token: *a15
+        plan: *a15
+        evidenceRefs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        approvedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - versionId
+        - revision
+        - title
+        - state
+        - candidateSkus
+        - ruleRevisionIds
+        - inventoryImportId
+        - dataMode
+        - qrUrl
+    RevisionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        expectedRevision: *a3
+      required:
+        - expectedRevision
+    RuleInput:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - exclude_sku
+            - require_language
+            - require_format
+            - max_price_minor
+        operand:
+          oneOf:
+            - *a1
+            - *a13
+        scope:
+          type: string
+          enum:
+            - store
+            - campaign
+        campaignId: *a2
+        example:
+          $ref: "#/components/schemas/RuleCase"
+        counterexample:
+          $ref: "#/components/schemas/RuleCase"
+        reviewAt: *a4
+      required:
+        - type
+        - operand
+        - scope
+        - example
+        - counterexample
+        - reviewAt
+    RuleCase:
+      type: object
+      additionalProperties: false
+      properties:
+        sku: *a1
+        language: *a1
+        format: *a1
+        priceMinor: *a13
+        expectedPass:
+          type: boolean
+      required:
+        - sku
+        - language
+        - format
+        - priceMinor
+        - expectedPass
+    PublicCampaign:
+      type: object
+      additionalProperties: false
+      properties:
+        title: *a1
+        storeName: *a1
+        versionId: *a2
+        dataMode:
+          type: string
+          enum:
+            - demo
+            - pilot
+        providerMode:
+          type: string
+          enum:
+            - live
+            - fixture
+            - unconfigured
+        currency: *a1
+        observedAt: *a4
+        measurementNoticeVersion: *a1
+      required:
+        - title
+        - storeName
+        - versionId
+        - dataMode
+        - providerMode
+        - currency
+        - observedAt
+        - measurementNoticeVersion
+    ShopperSession:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *a2
+        campaignVersionId: *a2
+        expiresAt: *a4
+        measurementOptIn:
+          type: boolean
+        frozenPreferences:
+          type:
+            - object
+            - "null"
+          additionalProperties: false
+          properties:
+            interests:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                properties:
+                  id: *a1
+                  name: *a1
+                required:
+                  - id
+                  - name
+            budgetMinor:
+              type: integer
+              minimum: 0
+          required:
+            - interests
+            - budgetMinor
+        measured:
+          type: boolean
+        dataMode:
+          type: string
+          enum:
+            - demo
+            - pilot
+        measurementAllowed:
+          type: boolean
+      required:
+        - id
+        - campaignVersionId
+        - expiresAt
+        - measurementOptIn
+        - frozenPreferences
+        - measured
+        - dataMode
+        - measurementAllowed
+    RecommendationRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        interestIds:
+          type: array
+          items: *a1
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+        budgetMinor: *a13
+        excludedSkus:
+          type: array
+          items: *a1
+          maxItems: 100
+          uniqueItems: true
+      required:
+        - interestIds
+        - budgetMinor
+        - excludedSkus
+    Recommendation:
+      type: object
+      additionalProperties: false
+      properties:
+        sku: *a1
+        entityId: *a1
+        title: *a1
+        author: *a1
+        priceMinor: *a13
+        currency: *a1
+        shelf: *a1
+        rank: *a3
+        interpretation:
+          type: string
+          maxLength: 500
+        evidenceRef: *a2
+        evidenceMode:
+          type: string
+          enum:
+            - live
+            - fixture
+        inventoryObservedAt: *a4
+        color: *a15
+        tags:
+          type: array
+          items: *a15
+      required:
+        - sku
+        - entityId
+        - title
+        - author
+        - priceMinor
+        - currency
+        - shelf
+        - rank
+        - interpretation
+        - evidenceRef
+        - evidenceMode
+        - inventoryObservedAt
+    RecommendationResult:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+            - recommendations
+        runId: *a2
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recommendation"
+          maxItems: 3
+        dataMode:
+          type: string
+          enum:
+            - demo
+            - pilot
+        emptyReason:
+          type:
+            - string
+            - "null"
+      required:
+        - kind
+        - runId
+        - items
+        - dataMode
+        - emptyReason
+    PlanResult:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+            - plan
+        campaign:
+          $ref: "#/components/schemas/Campaign"
+        evidenceRefs:
+          type: array
+          items: *a2
+      required:
+        - kind
+        - campaign
+        - evidenceRefs
+    ReplayResult:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+            - replay
+        passed:
+          type: boolean
+        violations:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              ruleId: *a2
+              sku: *a1
+              message: *a1
+            required:
+              - ruleId
+              - sku
+              - message
+      required:
+        - kind
+        - passed
+        - violations
+    EvaluationResult:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+            - evaluation
+        status:
+          type: string
+          enum:
+            - passed
+            - failed
+            - insufficient_evidence
+        protocolVersion: *a1
+        evidenceCutoff: *a4
+        receiptId: *a2
+        message: *a15
+      required:
+        - kind
+        - status
+        - protocolVersion
+        - evidenceCutoff
+        - receiptId
+    ExportResult:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+            - export
+        downloadUrl:
+          type: string
+          format: uri
+        expiresAt: *a4
+        format:
+          type: string
+          enum:
+            - json
+            - csv
+      required:
+        - kind
+        - downloadUrl
+        - expiresAt
+    Job:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *a2
+        status:
+          type: string
+          enum:
+            - queued
+            - running
+            - succeeded
+            - failed
+            - cancelled
+        createdAt: *a4
+        deadlineAt: *a4
+        result:
+          oneOf:
+            - $ref: "#/components/schemas/RecommendationResult"
+            - $ref: "#/components/schemas/PlanResult"
+            - $ref: "#/components/schemas/ReplayResult"
+            - $ref: "#/components/schemas/EvaluationResult"
+            - $ref: "#/components/schemas/ExportResult"
+        error:
+          $ref: "#/components/schemas/Error"
+      required:
+        - id
+        - status
+        - createdAt
+        - deadlineAt
+    OutcomeInput:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - purchase
+            - return
+            - correction
+        sessionCode:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Required for a purchase. Not required or used to authorize a return/correction; that
+            uses the original transaction.
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 80
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 100
+        amountMinor: *a13
+        currency:
+          type: string
+          const: USD
+        occurredAt: *a4
+        receiptReference:
+          type: string
+          minLength: 1
+          maxLength: 200
+        parentEventId: *a2
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+        - type
+        - sku
+        - quantity
+        - amountMinor
+        - currency
+        - occurredAt
+        - receiptReference
+      allOf:
+        - if:
+            properties:
+              type:
+                const: purchase
+            required:
+              - type
+          then:
+            required:
+              - sessionCode
+            not:
+              required:
+                - parentEventId
+          else:
+            required:
+              - parentEventId
+              - reason
+    Review:
+      type: object
+      additionalProperties: false
+      properties:
+        campaignId: *a2
+        periodStart: *a4
+        periodEnd: *a4
+        assigned: *a13
+        served: *a13
+        failed: *a13
+        verifiedPurchases: *a13
+        missingOutcomes: *a13
+        evidenceStatus:
+          type: string
+          enum:
+            - simulation
+            - insufficient
+            - analyzable
+        dataMode:
+          type: string
+          enum:
+            - demo
+            - pilot
+        analysisVersion: *a1
+        arms:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              arm:
+                type: string
+                enum:
+                  - treatment
+                  - control
+                  - candidate_policy
+                  - prior_policy
+              assigned:
+                type: integer
+                minimum: 0
+              served:
+                type: integer
+                minimum: 0
+              failed:
+                type: integer
+                minimum: 0
+              verifiedPurchasingSessions:
+                type: integer
+                minimum: 0
+              missingAscertainment:
+                type: integer
+                minimum: 0
+            required:
+              - arm
+              - assigned
+              - served
+              - failed
+              - verifiedPurchasingSessions
+              - missingAscertainment
+        differencePercentagePoints:
+          type:
+            - number
+            - "null"
+        intervalLower:
+          type:
+            - number
+            - "null"
+        intervalUpper:
+          type:
+            - number
+            - "null"
+        ownerActiveWorkSeconds:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+        generationRuns:
+          type: integer
+          minimum: 0
+        withdrawnVisits:
+          type: integer
+          minimum: 0
+        periodBasis:
+          type: string
+          enum:
+            - activity_window
+        periodNotice:
+          type: string
+      required:
+        - campaignId
+        - periodStart
+        - periodEnd
+        - assigned
+        - served
+        - failed
+        - verifiedPurchases
+        - missingOutcomes
+        - evidenceStatus
+        - dataMode
+        - analysisVersion
+        - arms
+        - differencePercentagePoints
+        - intervalLower
+        - intervalUpper
+        - ownerActiveWorkSeconds
+    ExperimentInput:
+      type: object
+      additionalProperties: false
+      properties:
+        campaignVersionId: *a2
+        comparison:
+          type: string
+          enum:
+            - qloo_vs_llm
+            - policy_vs_policy
+        protocolVersion: *a1
+        modelVersion: *a1
+        policyVersionIds:
+          type: array
+          items: *a2
+          minItems: 1
+          maxItems: 2
+        plannedSampleSize:
+          type: integer
+          minimum: 1
+        enrollmentClosesAt: *a4
+      required:
+        - campaignVersionId
+        - comparison
+        - protocolVersion
+        - modelVersion
+        - policyVersionIds
+        - plannedSampleSize
+        - enrollmentClosesAt
+    PolicyInput:
+      type: object
+      additionalProperties: false
+      properties:
+        expectedRevision: *a3
+        rationale:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        rankOffsets:
+          type: array
+          maxItems: 10
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              sku: *a1
+              positions:
+                type: integer
+                minimum: -1
+                maximum: 1
+            required:
+              - sku
+              - positions
+        trainingExperimentIds:
+          type: array
+          items: *a2
+        evaluationExperimentId: *a2
+      required:
+        - expectedRevision
+        - rationale
+        - rankOffsets
+        - trainingExperimentIds
+    MembershipInput:
+      type: object
+      additionalProperties: false
+      properties:
+        identityId: *a1
+        permissions:
+          type: array
+          items:
+            type: string
+            enum:
+              - inventory_review
+              - campaign_draft
+              - outcome_verify
+              - review_read
+          uniqueItems: true
+          minItems: 1
+      required:
+        - identityId
+        - permissions
+    MembershipInvitation:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+        inviteUrl:
+          type: string
+          format: uri
+        inviteExpiresAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - revision
+        - inviteUrl
+        - inviteExpiresAt

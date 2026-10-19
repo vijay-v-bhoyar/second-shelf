@@ -1,0 +1,16 @@
+node_modules/
+.next/
+.data/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+output/
+outputs/
+graphify-out/
+.vercel/
+.playwright-cli/
+.hackops/
+.loop/
+.devpost-hackathon-state.json
+*.log
