@@ -27,6 +27,7 @@ export interface Assignment {
 }
 export interface Shopper {
   id: string; campaignId: string; versionId: string; token: string; csrf: string; expiresAt: string;
+  rejectedWorkIds?: string[];
   measurementOptIn: boolean; noticeVersion: string; rejected: string[]; code?: string; assignmentId?: string; closedAt?:string; privacyGroupId?:string; measurementAllowed?:boolean;
 }
 export interface Recommendation {

@@ -2,6 +2,7 @@ import type { Book, Interest, Store } from "@/lib/types";
 import { interests } from "./fixtures";
 import { AppError, requireThat } from "./domain";
 import { reserveProviderCall } from "./repository";
+import { selectEditions } from "./book-selection";
 
 export function providerMode(): "live"|"fixture"|"unconfigured" {
   const mode=process.env.SECOND_SHELF_PROVIDER_MODE??"fixture";
@@ -38,15 +39,16 @@ export async function rankBooks(pool:Book[],interestIds:string[]) {
   if(providerMode()==="fixture") {
     requireThat(interestIds.every(i=>interests.some(x=>x.id===i)),"INVALID_INPUT","Select a supported sample film or musician.",400);
     const tags=interestIds.flatMap(i=>interests.find(x=>x.id===i)!.tags);
-    return [...pool].sort((a,b)=>b.tags.filter(t=>tags.includes(t)).length-a.tags.filter(t=>tags.includes(t)).length||a.sku.localeCompare(b.sku));
+    return selectEditions(pool).sort((a,b)=>b.tags.filter(t=>tags.includes(t)).length-a.tags.filter(t=>tags.includes(t)).length||a.sku.localeCompare(b.sku));
   }
   requireThat(pool.length<=50,"INVALID_INPUT","For verified live ranking, limit this campaign to 50 mapped books until account limits are measured.",422);
   requireThat(pool.every(b=>b.entityId && !b.entityId.startsWith("fixture-")) && interestIds.every(i=>!i.startsWith("fixture-")),"INVALID_INPUT","Resolve real Qloo identities before using live ranking.",422);
   // Eligibility is authoritative: nothing can be ranked when the store has no matches.
   if(!pool.length)return [];
-  const rows=normalize(await qloo("/v2/insights",{"filter.type":"urn:entity:book","signal.interests.entities":interestIds.join(","),"filter.results.entities":pool.map(b=>b.entityId).join(","),take:String(pool.length)}));
-  const byId=new Map(pool.map(b=>[b.entityId,b]));
+  const editions=selectEditions(pool);
+  const rows=normalize(await qloo("/v2/insights",{"filter.type":"urn:entity:book","signal.interests.entities":interestIds.join(","),"filter.results.entities":editions.map(b=>b.entityId).join(","),take:String(editions.length)}));
+  const byId=new Map(editions.map(b=>[b.entityId,b]));
   const ranked=rows.map(x=>byId.get(String(x.entity_id??x.id??""))).filter((x):x is Book=>!!x);
   requireThat(ranked.length===rows.length,"PROVIDER_UNAVAILABLE","Qloo returned an entity outside the eligible bookstore catalog.",502);
-  return [...new Map(ranked.map(b=>[b.sku,b])).values()];
+  return [...new Map(ranked.map(b=>[b.entityId,b])).values()];
 }

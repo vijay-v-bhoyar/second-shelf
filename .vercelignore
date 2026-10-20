@@ -1,0 +1,16 @@
+.env
+.env.*
+.data/
+output/
+outputs/
+graphify-out/
+.loop/
+.hackops/
+.git/
+.agents/
+.codex/
+docs/
+tests/
+scripts/
+*.log
+*.tsbuildinfo

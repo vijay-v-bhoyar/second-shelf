@@ -30,7 +30,11 @@ This runs typecheck, lint, unit/API tests, contract validation, local restore, d
 
 The public demo uses Vercel, Neon PostgreSQL and server-side Qloo calls. The supplied .env.example intentionally contains blank credentials. Keep keys, connection strings, session/invitation secrets, runtime data, exports and browser traces private. Live mode needs the authorized account, API origin, call allowance and credentials; it is not enabled by this source snapshot. Provider errors are reported rather than silently replacing live results with fixtures.
 
-## Evidence boundary
+## Current source update — October 20, 2026
+
+Duplicate editions now select one cheapest eligible edition per confirmed work, with a stable SKU tie break. Rejecting a book excludes other editions of that confirmed work, including at asynchronous result commit. Original preferences are preserved. This source passed 96 unit/API tests, seven gates and 138 local browser checks. These changes have not been deployed or verified against live Qloo. See [verification and limitations](docs/VERIFICATION.md).
+
+## Historical deployed evidence
 
 The October 19 deployed runtime passed 84 unit/API tests, seven local gates, 120 seeded browser checks, 10 focused local recovery scenarios and 54 public checks, including actual Qloo mapping/ranking. These are automated checks, not people or real purchases. See [verification and limitations](docs/VERIFICATION.md) for scope, retained failures and remaining gaps. Private traces and original human reports are excluded.
 

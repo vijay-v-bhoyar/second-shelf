@@ -6,6 +6,7 @@ import { interests, makeStore } from "./fixtures";
 import { allStores, createOrReuseDemo, databaseMode, db, deleteStore, findOwner, forgetShopper, getStore, insertStore, mutateStore } from "./repository";
 import { providerMode, rankBooks, searchEntities } from "./providers";
 import { bootstrapOwnerToken, invitationToken, membershipWire, staffAuthority, staffCan } from "./access";
+import { isRejected, rejectedWorks, selectEditions } from "./book-selection";
 
 type Payload = Record<string, unknown>;
 type InternalJob = Job & { payload?: Payload; kind?: string; attempts?: number; staffSessionId?:string; runnerToken?:string };
@@ -96,10 +97,11 @@ async function runJob(storeId:string,jobId:string) {
       const shopper=store.shoppers.find(x=>x.id===job!.sessionId);requireThat(shopper,"UNAUTHENTICATED","Shopper session expired.",401);
       const c=store.campaigns.find(x=>x.versionId===shopper.versionId);requireThat(c?.state==="active","CONFLICT","This display changed. Open its current QR page.");
       const input=schemas.recommendation.parse(p);
-      const pool=store.books.filter(b=>eligible(store,b,input.budgetMinor,c)&&!shopper.rejected.includes(b.sku)&&!input.excludedSkus.includes(b.sku));
+      const rejected=rejectedWorks(store,shopper);
+      const pool=store.books.filter(b=>eligible(store,b,input.budgetMinor,c)&&!isRejected(shopper,rejected,b)&&!input.excludedSkus.includes(b.sku));
       const assignment=store.assignments.find(a=>a.id===shopper.assignmentId);
       const simulatedControl=assignment?.arm==="control";
-      const ranked=simulatedControl?[...pool].sort((a,b)=>a.title.localeCompare(b.title)):await rankBooks(pool,input.interestIds);
+      const ranked=simulatedControl?selectEditions(pool).sort((a,b)=>a.title.localeCompare(b.title)):await rankBooks(pool,input.interestIds);
       const evidenceMode=simulatedControl?"simulation":providerMode()==="live"?"live":"fixture";
       const interpretation=simulatedControl?"Simulated comparison: eligible books are sorted alphabetically. Qloo was not called for this run. This is not a real LLM comparison or pilot evidence.":providerMode()==="fixture"?"Sample curator match using the interests you chose. This association is illustrative; Qloo has not been called.":"Ranked by Qloo for your selected cultural interests within this store's eligible book list. This is association, not a purchase prediction.";
       result={kind:"recommendations",runId:job.id,dataMode:"demo",evidenceMode,emptyReason:ranked.length?null:"No suitable books fit your current choices. Try another interest or budget.",items:ranked.slice(0,3).map((b,i)=>({sku:b.sku,entityId:b.entityId,title:b.title,author:b.author,priceMinor:b.priceMinor,currency:b.currency,shelf:b.shelf,rank:i+1,color:b.color,tags:b.tags,inventoryObservedAt:b.observedAt,evidenceRef:id(),evidenceMode,interpretation}))};
@@ -126,7 +128,8 @@ async function runJob(storeId:string,jobId:string) {
       if(result.kind==="recommendations"){
         const session=s.shoppers.find(x=>x.id===job!.sessionId)!;const c=s.campaigns.find(x=>x.versionId===session.versionId);
         requireThat(c?.state==="active","CONFLICT","Display changed while generating. Reopen the QR page.");
-        result.items=(result.items as Payload[]).filter(x=>{const b=s.books.find(b=>b.sku===x.sku);return b&&eligible(s,b,Number(p.budgetMinor),c)&&!session.rejected.includes(b.sku);});
+        const rejected=rejectedWorks(s,session);
+        result.items=(result.items as Payload[]).filter(x=>{const b=s.books.find(b=>b.sku===x.sku);return b&&b.entityId===x.entityId&&eligible(s,b,Number(p.budgetMinor),c)&&!isRejected(session,rejected,b);});
         if(!(result.items as Payload[]).length)result.emptyReason="No eligible stock remains for these choices.";
       }
       if(result.kind==="plan"){
@@ -362,7 +365,15 @@ function perform(s:Store,ctx:Context,method:string,parts:string[],body:Payload,b
       const input=z.object({runId:z.string().uuid(),sku:z.string().min(1).max(80),type:z.enum(["impression","interest","reject"])}).strict().parse(body);
       const run=s.jobs.find(j=>j.id===input.runId&&j.sessionId===shopper.id);requireThat(run?.status==="succeeded"&&(run.result?.items as Payload[]|undefined)?.some(x=>x.sku===input.sku),"FORBIDDEN","Feedback must reference a book actually offered to your session.",403);
       if(!s.feedback.some(e=>e.sessionId===shopper.id&&e.runId===input.runId&&e.sku===input.sku&&e.type===input.type))s.feedback.push({id:id(),sessionId:shopper.id,...input,at:now()});
-      if(input.type==="reject"&&!shopper.rejected.includes(input.sku))shopper.rejected.push(input.sku);return{data:{id:run.id,revision:1}};
+      if(input.type==="reject"){
+        if(!shopper.rejected.includes(input.sku))shopper.rejected.push(input.sku);
+        const offered=(run.result!.items as Payload[]).find(x=>x.sku===input.sku)!;
+        if(typeof offered.entityId==="string"&&offered.entityId){
+          shopper.rejectedWorkIds??=[];
+          if(!shopper.rejectedWorkIds.includes(offered.entityId))shopper.rejectedWorkIds.push(offered.entityId);
+        }
+      }
+      return{data:{id:run.id,revision:1}};
     }
     if(objectId==="purchase-code"){
       const input=z.object({runId:z.string().uuid()}).strict().parse(body);requireThat(s.jobs.some(j=>j.id===input.runId&&j.sessionId===shopper.id&&j.status==="succeeded"),"FORBIDDEN","Complete discovery before asking for a counter code.",403);shopper.code??=secret().slice(0,12).toUpperCase();return{data:{code:shopper.code,expiresAt:shopper.expiresAt}};

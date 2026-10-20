@@ -1,3 +1,27 @@
+# October 20, 2026: current source verification
+
+Runtime SHA-256: `12a293b0c502102475f83f4141ccd1fc79ed9ed2022a7745f0d756cc9ef0256d`.
+
+Duplicate editions: filter eligibility first, then choose the cheapest edition per confirmed work with an ordinal SKU tie break. Preserve provider work order, deduplicate request/result work IDs, reject out-of-pool IDs, retain the existing 50 eligible-row limit.
+
+Rejection: retain original SKU feedback, additionally store the work identity from the actual offered result, and exclude matching editions both before ranking and before asynchronous commit. Legacy history is interpreted without rewriting it. Start-fresh and privacy deletion remain explicit. Incorrectly split work identities and missing/ambiguous legacy evidence remain limitations; title strings are not treated as identity.
+
+Executed on this source:
+- 96 unit/API tests, including 12 focused edition/rejection tests.
+- Seven gates: typecheck, lint, unit/API, contract, restore, dependency audit and production build.
+- 120 checks across eight existing seeded browser suites, 10 CSV recovery checks, and 8 new edition/rejection browser checks: 138 total.
+- Original answer/submission records and all 24 existing test oracles preserved.
+
+Tests use isolated local databases. Qloo contracts intercept network calls; browsers use fixture mode. This is not live-provider proof or physical Android/human accessibility acceptance. Public deployment and public regression tests for this candidate have NOT RUN. Organizer clarification remains unsent and agentic eligibility unresolved. No agent framework or runtime LLM was added.
+
+Both defects were reproduced before repair. The first expanded test run contained fixture/helper errors (missing synthetic store token; reused shopper cookie); corrected without weakening assertions. An evidence aggregation directory-filter error was also corrected. Failed logs, passing results, screenshots, traces and hash manifests are retained privately, not published with session data.
+
+The new browser suite is `scripts/edition-rejection-e2e.mjs`; it requires an isolated loopback fixture server. Unit regressions are included in `npm test`. Never run public mutation suites without an explicit allowance.
+
+---
+
+The following is historical evidence for the older deployed runtime, not this source:
+
 # Verification and current limitations
 
 On October 19, 2026, the deployed runtime source SHA-256 was:
