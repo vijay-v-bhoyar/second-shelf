@@ -32,7 +32,7 @@ The public demo uses Vercel, Neon PostgreSQL and server-side Qloo calls. The sup
 
 ## Evidence boundary
 
-The October 17 Eastern application candidate recorded 84 unit/API tests, seven gates, 120 isolated fixture browser checks and 52 public browser checks, including actual Qloo mapping/ranking. Those are historical automated check counts, not people, real purchases or prospective efficacy. Private logs/traces and original human reports are deliberately excluded from this publication proposal. The sanitized candidate must be verified separately before release.
+The October 19 deployed runtime passed 84 unit/API tests, seven local gates, 120 seeded browser checks, 10 focused local recovery scenarios and 54 public checks, including actual Qloo mapping/ranking. These are automated checks, not people or real purchases. See [verification and limitations](docs/VERIFICATION.md) for scope, retained failures and remaining gaps. Private traces and original human reports are excluded.
 
 ## License
 
