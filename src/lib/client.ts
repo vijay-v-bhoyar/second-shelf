@@ -1,4 +1,7 @@
 import type { Job } from "./types";
+export class ApiError extends Error {
+  constructor(message:string,public status:number){super(message);}
+}
 let merchantCsrf="",shopperCsrf="";
 export function setCsrf(token:string,shopper=false){if(shopper)shopperCsrf=token;else merchantCsrf=token;}
 export async function api<T>(path:string,body?:unknown,method="POST",shopper=false,options:{timeoutMs?:number;idempotencyKey?:string}={}):Promise<T>{
@@ -10,7 +13,7 @@ export async function api<T>(path:string,body?:unknown,method="POST",shopper=fal
   const response=await fetch(`/api/v1/${path}`,{method:mutation?method:"GET",headers,body:mutation?(body instanceof FormData?body:JSON.stringify(body??{})):undefined,cache:"no-store",signal:AbortSignal.timeout(options.timeoutMs??15000)});
   const token=response.headers.get("X-CSRF-Token");if(token)setCsrf(token,true);
   const data=await response.json();
-  if(!response.ok)throw new Error(data.message??`Request failed (${response.status}).`);
+  if(!response.ok)throw new ApiError(data.message??`Request failed (${response.status}).`,response.status);
   return data as T;
   } catch(error) {
     if(error instanceof Error&&(error.name==="TimeoutError"||error.name==="AbortError"))throw new Error(path==="demo-sessions"||path.endsWith("workspace")?"Opening the bookstore took too long. Retry to resume the same bookstore.":"The request took too long. Reload to check whether it completed, then retry if needed.",{cause:error});

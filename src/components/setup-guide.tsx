@@ -1,12 +1,12 @@
 type Props = {
   providerMode: string;
-  eligibleTitles: number;
+  eligibleEditionRows: number;
   activeDisplay: boolean;
   expiresAt: string;
   navigate: (tab: string) => void;
 };
 
-export function SetupGuide({ providerMode, eligibleTitles, activeDisplay, expiresAt, navigate }: Props) {
+export function SetupGuide({ providerMode, eligibleEditionRows, activeDisplay, expiresAt, navigate }: Props) {
   return <section className="panel setup-guide" aria-labelledby="setup-heading">
     <h2 id="setup-heading">Your path to a first display</h2>
     <p>{providerMode === "unconfigured"
@@ -15,7 +15,7 @@ export function SetupGuide({ providerMode, eligibleTitles, activeDisplay, expire
         ? "Rehearse with sample matches and simulated outcomes. This demonstrates the workflow, not customer demand or sales improvement."
         : "Qloo access is enabled. Confirm actual edition matches and stock before publishing. Affinity does not establish purchase likelihood."}</p>
     <ol>
-      <li><strong>Review the shelves.</strong> {eligibleTitles} titles currently eligible. Import a snapshot and review editions and quantities. <button className="inline-link" onClick={() => navigate("inventory")}>Start inventory review</button></li>
+      <li><strong>Review the shelves.</strong> {eligibleEditionRows} edition rows eligible at last refresh. Import a snapshot and review editions and quantities. <button className="inline-link" onClick={() => navigate("inventory")}>Start inventory review</button></li>
       <li><strong>Prepare and approve.</strong> Save a display, inspect its selections, approve the current version, then activate it. <button className="inline-link" onClick={() => navigate("display")}>Inspect display readiness</button></li>
       <li><strong>Check the reader handoff.</strong> {activeDisplay ? "An active display exists. Open its shopper link in a separate browser and check the counter handoff." : "No active display yet. Shopper discovery needs an approved, active display."}</li>
       <li><strong>Decide whether to continue.</strong> Review the evidence and record a decision. <button className="inline-link" onClick={() => navigate("review")}>Inspect review evidence</button></li>

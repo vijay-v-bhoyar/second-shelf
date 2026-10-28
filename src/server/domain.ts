@@ -1,14 +1,16 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
-import type { Book, Campaign, Rule, RuleCase, Store } from "@/lib/types";
+import { rulePass } from "@/lib/display-review";
+export { rulePass } from "@/lib/display-review";
+import type { Book, Campaign, Store } from "@/lib/types";
 
 export const id = () => randomUUID();
 export const secret = () => randomBytes(32).toString("hex");
 export const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 export const now = () => new Date().toISOString();
 export class AppError extends Error {
-  constructor(public code: string, message: string, public status = 400, public retryable = false) { super(message); }
+  constructor(public code: string, message: string, public status = 400, public retryable = false) { super(message.slice(0, 200)); }
 }
 export function requireThat(value: unknown, code: string, message: string, status = 409): asserts value {
   if (!value) throw new AppError(code, message, status);
@@ -16,23 +18,15 @@ export function requireThat(value: unknown, code: string, message: string, statu
 export const schemas = {
   revision: z.object({ expectedRevision: z.number().int().positive() }).strict(),
   draft: z.object({ title: z.string().trim().min(1).max(200), candidateSkus: z.array(z.string().max(80)).min(1).max(500), ruleRevisionIds: z.array(z.string().uuid()) }).strict(),
-  recommendation: z.object({ interestIds: z.array(z.string().min(1).max(200)).min(1).max(3).refine(x => new Set(x).size === x.length), budgetMinor: z.number().int().min(0).max(1000000), excludedSkus: z.array(z.string().max(80)).max(100) }).strict(),
+  recommendation: z.object({ interestIds: z.array(z.string().min(1).max(200)).min(1).max(3).refine(x => new Set(x).size === x.length), budgetMinor: z.number().int().min(0).max(1000000), excludedSkus: z.array(z.string().min(1).max(80)).max(100).refine(x => new Set(x).size === x.length) }).strict(),
   outcome: z.object({ type: z.enum(["purchase", "return", "correction"]), sessionCode: z.string().min(1).max(200).optional(), sku: z.string().min(1).max(80), quantity: z.number().int().positive().max(100), amountMinor: z.number().int().nonnegative().max(10000000), currency: z.literal("USD"), occurredAt: z.string().datetime(), receiptReference: z.string().min(1).max(200), parentEventId: z.string().uuid().optional(), reason: z.string().min(1).max(500).optional() }).strict()
 };
 export function revision(actual: number, expected: unknown) {
   requireThat(actual === expected, "CONFLICT", "This record changed. Reload and review the latest version.");
 }
-export function rulePass(rule: Pick<Rule, "type" | "operand">, item: Pick<Book, "sku" | "language" | "format" | "priceMinor"> | RuleCase): boolean {
-  switch (rule.type) {
-    case "exclude_sku": return item.sku !== rule.operand;
-    case "require_language": return item.language === rule.operand;
-    case "require_format": return item.format === rule.operand;
-    case "max_price_minor": return item.priceMinor <= Number(rule.operand);
-  }
-}
 export function ruleViolations(store: Store, campaign: Campaign) {
   return store.rules.filter(r => r.active && (r.scope === "store" || r.campaignId === campaign.id)).flatMap(r =>
-    store.books.filter(b => campaign.candidateSkus.includes(b.sku) && !rulePass(r, b)).map(b => ({ ruleId: r.id, sku: b.sku, message: `${b.title} does not pass ${r.type}.` })));
+    store.books.filter(b => campaign.candidateSkus.includes(b.sku) && (!(Date.parse(r.reviewAt) > Date.now()) || !rulePass(r, b))).map(b => ({ ruleId: r.id, sku: b.sku, message: !(Date.parse(r.reviewAt) > Date.now()) ? "Rule review expired; renew or disable after review." : `${b.title} does not pass ${r.type}.` })));
 }
 export function effectiveQuantity(store: Store, book: Book) {
   const purchases = store.outcomes.filter(o => o.type === "purchase" && o.sku === book.sku && Date.parse(o.occurredAt) > Date.parse(book.observedAt));

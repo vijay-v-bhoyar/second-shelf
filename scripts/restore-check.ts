@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
+import { effectiveQuantity } from "../src/server/domain";
 import { makeStore } from "../src/server/fixtures";
 import { captureLocalBackup, restoreLocalBackup } from "../src/server/recovery";
 
@@ -26,13 +27,24 @@ const privacyBackup=structuredClone(backup);const privacyStore=privacyBackup.sto
 privacyStore.shoppers.push({id:withdrawnId,campaignId:kept.campaigns[0].id,versionId:kept.campaigns[0].versionId,token:"private-session",csrf:"private-csrf",expiresAt:kept.expiresAt,measurementOptIn:true,noticeVersion:"demo-notice-v1",rejected:["private-choice"]});
 privacyStore.memberships.push({id:memberId,identityId:"old staff",permissions:["outcome_verify"],inviteNonce:"old-invite",redeemedAt:new Date().toISOString(),expiresAt:kept.expiresAt});privacyStore.staffSessions=[{id:randomUUID(),membershipId:memberId,token:"old-staff-session",csrf:"old-staff-csrf",expiresAt:kept.expiresAt}];
 privacyStore.assignments.push({id:randomUUID(),sessionId:withdrawnId,experimentId:randomUUID(),arm:"control",at:new Date().toISOString(),candidateSkus:[],interests:["private-choice"],budgetMinor:1500});
+const purchaseId=randomUUID(),returnId=randomUUID();
+const originalLedger:typeof kept.outcomes=[
+  {id:purchaseId,type:"purchase" as const,sessionId:withdrawnId,sku:kept.books[0].sku,quantity:2,amountMinor:2400,currency:"USD",occurredAt:new Date().toISOString(),recordedAt:new Date().toISOString(),receiptDigest:"synthetic-original-receipt",dataMode:"demo" as const},
+  {id:returnId,type:"return" as const,sessionId:withdrawnId,sku:kept.books[0].sku,quantity:1,amountMinor:1200,currency:"USD",occurredAt:new Date().toISOString(),recordedAt:new Date().toISOString(),receiptDigest:"synthetic-return",parentEventId:purchaseId,reason:"Synthetic return",dataMode:"demo" as const}
+];
+originalLedger.push({...originalLedger[0],id:randomUUID(),type:"correction",parentEventId:purchaseId,quantity:1,amountMinor:1200,receiptDigest:"synthetic-correction",reason:"Synthetic correction"});
+privacyStore.outcomes=structuredClone(originalLedger);
+const originalQuantity=effectiveQuantity(privacyStore,privacyStore.books[0]);
 await restoreLocalBackup(target,privacyBackup,[deleted.id],[{storeId:kept.id,shopperId:withdrawnId}],[]);
 const privacyRestored=(await target.query<{data:typeof kept}>("SELECT data FROM stores WHERE id=$1",[kept.id])).rows[0].data;assert.equal(privacyRestored.shoppers.length,0);assert.equal(privacyRestored.assignments.length,0);assert.deepEqual(privacyRestored.staffSessions,[]);assert.ok(!privacyRestored.memberships[0].inviteNonce);assert.ok(!JSON.stringify(privacyRestored).includes("private-choice"));
+assert.deepEqual(privacyRestored.outcomes,originalLedger,"Preference withdrawal must preserve original purchase/return events");
+assert.equal(effectiveQuantity(privacyRestored,privacyRestored.books[0]),originalQuantity,"Preference purge cannot change the original stock projection");
 privacyBackup.providerBudgets=[{provider:"qloo",day:"2026-10-14",used:2}];
 await restoreLocalBackup(target,privacyBackup,[],[],[{provider:"qloo",day:"2026-10-14",used:7}]);
 await restoreLocalBackup(target,privacyBackup,[],[],[{provider:"qloo",day:"2026-10-14",used:3}]);
 assert.equal(Number((await target.query<{used:number}>("SELECT used FROM provider_call_budgets WHERE provider='qloo'")).rows[0].used),7);
 assert.equal((await target.query("SELECT id FROM stores WHERE id=$1",[deleted.id])).rows.length,0);
 assert.equal((await target.query<{data:typeof kept}>("SELECT data FROM stores WHERE id=$1",[kept.id])).rows[0].data.shoppers.length,0);
+assert.deepEqual((await target.query<{data:typeof kept}>("SELECT data FROM stores WHERE id=$1",[kept.id])).rows[0].data.outcomes,originalLedger,"Stale restoration must retain the exact original ledger");
 await target.close();
-console.log("PASS: disk persistence reopened; campaign history restored; current/target tenant and shopper tombstones applied; staff credentials/invitations not revived; budget maxima retained through stale replay; isolated temporary databases only.");
+console.log("PASS: disk persistence reopened; campaign history restored; current/target tenant and shopper tombstones applied; staff credentials/invitations not revived; budget maxima and original ledger retained through stale replay; isolated temporary databases only.");

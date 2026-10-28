@@ -43,5 +43,19 @@ test("serverless deferral, atomic job ownership and deadline recovery",async t=>
       resetInstance();await call(`jobs/${queued.data.id}`);await pending.shift()!();assert.equal((await getStore(storeId)).jobs.at(-1)?.status,"failed");
       release();await worker;const after=await getStore(storeId);assert.equal(after.jobs.at(-1)?.status,"failed");assert.deepEqual(after.campaigns[0],before);assert.equal(calls,2);
     });
+    await t.test("two unexpired queued jobs bound admission; rejection has no third effect",async()=>{
+      process.env.SECOND_SHELF_PROVIDER_MODE="fixture";
+      const first=await call("exports",{format:"json"}),second=await call("exports",{format:"csv"});
+      assert.equal(first.status,202);assert.equal(second.status,202);
+      const before=structuredClone((await getStore(storeId)).jobs);
+      const denied=await call("exports",{format:"json"});assert.equal(denied.status,429);
+      assert.deepEqual((await getStore(storeId)).jobs,before);
+      await mutateStore(storeId,s=>{s.jobs.find(j=>j.id===first.data.id)!.deadlineAt=new Date(Date.now()-1000).toISOString();});
+      const replacement=await call("exports",{format:"json"});assert.equal(replacement.status,202);
+      const jobs=(await getStore(storeId)).jobs;
+      assert.equal(jobs.filter(j=>["queued","running"].includes(j.status)&&Date.parse(j.deadlineAt)>Date.now()).length,2);
+      assert.ok(jobs.some(j=>j.id===first.data.id),"An expired job's original record is retained");
+      assert.equal(calls,2,"Export admission cannot make another provider call");
+    });
   }finally{release();globalThis.fetch=originalFetch;await(await db()).close();}
 });

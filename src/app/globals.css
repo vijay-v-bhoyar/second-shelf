@@ -30,3 +30,21 @@
 .staff-header{flex-wrap:wrap;gap:12px}.staff-header .button{margin-left:auto}
 
 .table-wrap:focus-visible{outline:3px solid #a77733;outline-offset:3px}
+
+/* Append-only outcome details: labels remain readable on narrow screens. */
+.outcome-ledger-details>div{display:block;border-bottom:1px solid var(--line);padding:9px 0;font-size:14px;overflow-wrap:anywhere}
+.outcome-ledger-details dt{color:var(--muted)}
+.outcome-ledger-details dd{margin:3px 0 0;font-weight:600}
+
+/* Activity counts retain their units and definitions at every width. */
+.activity-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:18px}
+.activity-metrics>div{padding:16px;border:1px solid var(--line);border-radius:7px}
+.activity-metrics dt{font-weight:600}.activity-metrics dd{margin:4px 0;font-size:30px}.activity-metrics p{margin:0;font-size:14px}
+[aria-label="Weekly activity review"] .panel{margin-bottom:20px;overflow-wrap:anywhere}
+
+/* Stage 7 accessibility: rendered contrast, visible keyboard entry and print fallback. */
+.skip-link{position:fixed;top:8px;left:8px;z-index:1000;transform:translateY(-180%);background:#17353b;color:#fff;padding:12px 18px;border-radius:6px;min-height:44px}
+.skip-link:focus{transform:translateY(0);outline:3px solid #a77733;outline-offset:3px}
+.qr-panel p,.qr-panel .eyebrow,.empty-state{color:#52675a}
+[tabindex="-1"]:focus-visible{outline:3px solid #a77733;outline-offset:3px}
+@media print{.skip-link{display:none!important}.qr-panel .qr-entry-link{display:block!important;color:#17353b!important;background:white!important;border:1px solid #17353b}.qr-panel .qr-url{display:block!important;overflow-wrap:anywhere}.qr-panel p,.qr-panel .eyebrow{color:#17353b!important}}

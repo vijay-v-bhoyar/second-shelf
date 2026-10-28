@@ -1,12 +1,17 @@
 openapi: 3.1.0
 info:
-  title: Second Shelf proposed internal API
-  version: 0.1.0-design
-  description: Design contract only. No endpoint is implemented. Prefix /api/v1. Tenant is derived
-    from verified sessions, never trusted from request bodies. See DATA_CONTRACTS and
-    SECURITY_PRIVACY. Job result appears only on success; error only on failure. Mutation
-    idempotency stores actor/store/operation/body hash. Authentication-provider login/callback URLs
-    are configured after vendor selection and are not invented here.
+  title: Second Shelf internal API — SS-S6-LOCAL-1
+  version: 0.1.0-s6-local-1
+  description: Frozen local synthetic target contract; implementation is partial and unchanged by this document.
+    Existing endpoints have dated evidence; this is not current conformance or release proof. Prefix /api/v1.
+    DATA_CONTRACTS Stage 6 defines the existing read-model supplement; BUILD_CONTRACT owns precedence and
+    conditional full-product gates. Tenant derives from server sessions. Model, real identity and pilot
+    contracts remain gated.
+  x-historical-design-description: Design contract only. No endpoint is implemented. Prefix /api/v1. Tenant is
+    derived from verified sessions, never trusted from request bodies. See DATA_CONTRACTS and
+    SECURITY_PRIVACY. Job result appears only on success; error only on failure. Mutation idempotency stores
+    actor/store/operation/body hash. Authentication-provider login/callback URLs are configured after vendor
+    selection and are not invented here.
 servers:
   - url: /api/v1
     description: Same-origin application API
@@ -17,8 +22,8 @@ paths:
     post:
       operationId: createDemoSession
       summary: Create an expiring isolated synthetic tenant
-      description: Origin validation, abuse limits and server-created tenant required; sets Secure
-        HttpOnly merchant lease cookie. Resets cannot touch other tenants.
+      description: Origin validation, abuse limits and server-created tenant required; sets Secure HttpOnly merchant
+        lease cookie. Resets cannot touch other tenants.
       x-required-role: public
       responses:
         "201":
@@ -33,9 +38,9 @@ paths:
               schema:
                 type: string
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -88,9 +93,9 @@ paths:
                   - csrfToken
                   - dataMode
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -109,9 +114,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportPreview"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -146,9 +151,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -195,9 +200,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/InventoryPage"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -217,8 +222,8 @@ paths:
     get:
       operationId: searchEntities
       summary: Resolve confirmed interest or inventory entity choices
-      description: Shopper may search movie/artist only. Book identity lookup requires merchant scope.
-        Provider mode and source are retained in internal receipts; rate and budget limits apply.
+      description: Shopper may search movie/artist only. Book identity lookup requires merchant scope. Provider mode
+        and source are retained in internal receipts; rate and budget limits apply.
       x-required-role: merchant_or_shopper
       responses:
         "200":
@@ -236,9 +241,9 @@ paths:
                 required:
                   - items
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -277,9 +282,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -333,9 +338,9 @@ paths:
                 required:
                   - items
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -353,9 +358,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -383,9 +388,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -408,9 +413,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -450,9 +455,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -483,8 +488,8 @@ paths:
     post:
       operationId: approveCampaign
       summary: Approve campaign with revision check
-      description: Checks current inventory/rules and prior state atomically. Activation updates QR
-        destination and closes prior enrollment; never silently reassigns existing sessions.
+      description: Checks current inventory/rules and prior state atomically. Activation updates QR destination and
+        closes prior enrollment; never silently reassigns existing sessions.
       x-required-role: owner
       responses:
         "200":
@@ -494,9 +499,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -518,8 +523,8 @@ paths:
     post:
       operationId: activateCampaign
       summary: Activate campaign with revision check
-      description: Checks current inventory/rules and prior state atomically. Activation updates QR
-        destination and closes prior enrollment; never silently reassigns existing sessions.
+      description: Checks current inventory/rules and prior state atomically. Activation updates QR destination and
+        closes prior enrollment; never silently reassigns existing sessions.
       x-required-role: owner
       responses:
         "200":
@@ -529,9 +534,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -553,8 +558,8 @@ paths:
     post:
       operationId: retireCampaign
       summary: Retire campaign with revision check
-      description: Checks current inventory/rules and prior state atomically. Activation updates QR
-        destination and closes prior enrollment; never silently reassigns existing sessions.
+      description: Checks current inventory/rules and prior state atomically. Activation updates QR destination and
+        closes prior enrollment; never silently reassigns existing sessions.
       x-required-role: owner
       responses:
         "200":
@@ -564,9 +569,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -588,8 +593,8 @@ paths:
     post:
       operationId: createRule
       summary: Create a reviewed structured correction rule
-      description: campaignId required for campaign scope; numeric operand only for max_price_minor. Both
-        example and counterexample must validate against deterministic evaluator before enabling.
+      description: campaignId required for campaign scope; numeric operand only for max_price_minor. Both example
+        and counterexample must validate against deterministic evaluator before enabling.
       x-required-role: owner
       responses:
         "201":
@@ -599,9 +604,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -629,9 +634,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -668,9 +673,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/PublicCampaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -685,9 +690,9 @@ paths:
     post:
       operationId: createShopperSession
       summary: Create or reuse scoped shopper session
-      description: Origin validated. Sets Secure HttpOnly shopper cookie. Returns CSRF token through a
-        same-origin response header. No arm assignment until eligible recommendation admission; demo
-        never enters pilot analysis.
+      description: Origin validated. Sets Secure HttpOnly shopper cookie. Returns CSRF token through a same-origin
+        response header. No arm assignment until eligible recommendation admission; demo never enters pilot
+        analysis.
       x-required-role: public
       responses:
         "201":
@@ -702,9 +707,9 @@ paths:
               schema:
                 type: string
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -726,8 +731,8 @@ paths:
               properties:
                 measurementOptIn:
                   type: boolean
-                  description: Omit to resume the existing choice, or default to false for a new visit. Explicit
-                    changes cannot reroll an assigned experiment.
+                  description: Omit to resume the existing choice, or default to false for a new visit. Explicit changes cannot
+                    reroll an assigned experiment.
                 noticeVersion: *a1
               required:
                 - noticeVersion
@@ -735,9 +740,9 @@ paths:
     post:
       operationId: recommendBooks
       summary: Queue an eligible assigned or unmeasured recommendation
-      description: Persist assignment before provider generation when measured. Changed interests/budget
-        are frozen during a measured experiment session; return 409 with start-unmeasured guidance
-        rather than rerolling. Exclusions can grow. Server independently recomputes eligibility.
+      description: Persist assignment before provider generation when measured. Changed interests/budget are frozen
+        during a measured experiment session; return 409 with start-unmeasured guidance rather than rerolling.
+        Exclusions can grow. Server independently recomputes eligibility.
       x-required-role: shopper
       responses:
         "202":
@@ -747,9 +752,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -779,9 +784,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -834,9 +839,9 @@ paths:
                   - code
                   - expiresAt
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -861,12 +866,12 @@ paths:
     post:
       operationId: verifyOutcome
       summary: Append a merchant-verified purchase, return or correction
-      description: Only owner or outcome_verify staff may record. Purchases require an offered counter
-        code/current SKU; title and ISBN are snapshotted. Adjustments use the original in-store
-        purchase and its remaining quantity/amount, even after preference withdrawal or catalog
-        removal. Original ledger and shopper deletion remain intact. Repeated reference/type/SKU
-        returns the existing ID only for the same transaction details; changed details conflict.
-        Adjustment time follows the original purchase within seven days.
+      description: Only owner or outcome_verify staff may record. Purchases require an offered counter code/current
+        SKU; title and ISBN are snapshotted. Adjustments use the original in-store purchase and its remaining
+        quantity/amount, even after preference withdrawal or catalog removal. Original ledger and shopper
+        deletion remain intact. Repeated reference/type/SKU returns the existing ID only for the same
+        transaction details; changed details conflict. Adjustment time follows the original purchase within
+        seven days.
       x-required-role: outcome_verify
       responses:
         "201":
@@ -876,9 +881,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -896,10 +901,10 @@ paths:
     get:
       operationId: readWeeklyReview
       summary: Read weekly evidence without unsupported winner claims
-      description: Read activity within UTC start inclusive / end exclusive, at most 366 days. Supply both
-        dates or neither; neither defaults to the last seven days. Assignments use assigned time,
-        runs request time, outcomes occurred time, withdrawals/decisions recorded time. Arm
-        summaries include assignments in the window. This is not a cohort conversion estimate.
+      description: Read activity within UTC start inclusive / end exclusive, at most 366 days. Supply both dates or
+        neither; neither defaults to the last seven days. Assignments use assigned time, runs request time,
+        outcomes occurred time, withdrawals/decisions recorded time. Arm summaries include assignments in the
+        window. This is not a cohort conversion estimate.
       x-required-role: merchant
       responses:
         "200":
@@ -907,11 +912,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Review"
+                $ref: "#/components/schemas/DemoReview"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -942,9 +947,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -998,9 +1003,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1022,8 +1027,8 @@ paths:
     post:
       operationId: freezeExperiment
       summary: Freeze validated enrollment and analysis protocol
-      description: Requires authorized pilot data mode, recorded consent protocol and analysis sample-size
-        receipt. Demo freeze is simulation only. Frozen definitions cannot be edited.
+      description: Requires authorized pilot data mode, recorded consent protocol and analysis sample-size receipt.
+        Demo freeze is simulation only. Frozen definitions cannot be edited.
       x-required-role: owner
       responses:
         "200":
@@ -1033,9 +1038,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1067,9 +1072,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1091,8 +1096,8 @@ paths:
     post:
       operationId: evaluatePolicy
       summary: Evaluate replay and preregistered held-out policy evidence
-      description: Returns insufficient_evidence when a valid prospective held-out experiment is absent;
-        historical clicks cannot invent counterfactual purchases.
+      description: Returns insufficient_evidence when a valid prospective held-out experiment is absent; historical
+        clicks cannot invent counterfactual purchases.
       x-required-role: owner
       responses:
         "202":
@@ -1102,9 +1107,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1131,8 +1136,8 @@ paths:
     post:
       operationId: approvePolicy
       summary: Approve passed policy for a future version
-      description: Reject unless replay and independent frozen evaluation passed; approval never changes
-        an enrolled experiment.
+      description: Reject unless replay and independent frozen evaluation passed; approval never changes an enrolled
+        experiment.
       x-required-role: owner
       responses:
         "200":
@@ -1142,9 +1147,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1176,9 +1181,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1205,9 +1210,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1234,9 +1239,8 @@ paths:
     post:
       operationId: grantMembership
       summary: Grant limited staff permissions
-      description: Issue a one-time sample access link. This verifies possession of an owner-issued
-        credential, not a real identity. No message is sent. Grant expiry, redemption and revocation
-        are enforced server-side.
+      description: Issue a one-time sample access link. This verifies possession of an owner-issued credential, not
+        a real identity. No message is sent. Grant expiry, redemption and revocation are enforced server-side.
       x-required-role: owner
       responses:
         "201":
@@ -1246,9 +1250,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/MembershipInvitation"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1276,9 +1280,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1294,8 +1298,8 @@ paths:
     delete:
       operationId: requestStoreDeletion
       summary: Revoke access and queue privacy deletion
-      description: Requires recent reauthentication. No ability to target arbitrary store ID; derive
-        tenant from owner identity. Outstanding jobs cancelled and analysis invalidation scheduled.
+      description: Requires recent reauthentication. No ability to target arbitrary store ID; derive tenant from
+        owner identity. Outstanding jobs cancelled and analysis invalidation scheduled.
       x-required-role: owner
       responses:
         "202":
@@ -1317,9 +1321,9 @@ paths:
                   - status
                   - purgeDueAt
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1344,8 +1348,8 @@ paths:
     patch:
       operationId: confirmInventorySnapshot
       summary: Owner confirms the sample edition stock snapshot
-      description: Local demo extension; cannot change another store or use a stale revision. This does
-        not write to a POS.
+      description: Local demo extension; cannot change another store or use a stale revision. This does not write to
+        a POS.
       x-required-role: owner
       parameters:
         - name: sku
@@ -1574,8 +1578,8 @@ paths:
     get:
       operationId: staff_readMerchantSession
       summary: Read current authorized merchant context
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1607,9 +1611,9 @@ paths:
                   - csrfToken
                   - dataMode
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1620,8 +1624,8 @@ paths:
     post:
       operationId: staff_previewInventoryImport
       summary: Stage and validate a CSV snapshot
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "201":
@@ -1631,9 +1635,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ImportPreview"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1660,8 +1664,8 @@ paths:
     post:
       operationId: staff_commitInventoryImport
       summary: Activate explicitly accepted rows atomically
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1671,9 +1675,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1714,8 +1718,8 @@ paths:
     get:
       operationId: staff_listInventory
       summary: List current inventory and eligibility
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1725,9 +1729,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/InventoryPage"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1752,8 +1756,8 @@ paths:
     get:
       operationId: staff_searchEntities
       summary: Resolve confirmed interest or inventory entity choices
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1771,9 +1775,9 @@ paths:
                 required:
                   - items
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1801,8 +1805,8 @@ paths:
     patch:
       operationId: staff_reviewEntityMapping
       summary: Confirm or exclude an inventory mapping
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1812,9 +1816,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1859,8 +1863,8 @@ paths:
     get:
       operationId: staff_listCampaigns
       summary: List scoped campaign summaries
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1878,9 +1882,9 @@ paths:
                 required:
                   - items
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1890,8 +1894,8 @@ paths:
     post:
       operationId: staff_createCampaign
       summary: Create a draft campaign version
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "201":
@@ -1901,9 +1905,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1923,8 +1927,8 @@ paths:
     get:
       operationId: staff_readCampaign
       summary: Read a scoped campaign and version
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1934,9 +1938,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -1953,8 +1957,8 @@ paths:
     patch:
       operationId: staff_reviseCampaign
       summary: Create or revise draft; approved versions are immutable
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -1964,9 +1968,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Campaign"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -2002,8 +2006,8 @@ paths:
     post:
       operationId: staff_planCampaign
       summary: Queue a bounded cultural proposal
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "202":
@@ -2013,9 +2017,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -2055,12 +2059,12 @@ paths:
     post:
       operationId: staff_verifyOutcome
       summary: Append a merchant-verified purchase, return or correction
-      description: Only owner or outcome_verify staff may record. Purchases require an offered counter
-        code/current SKU; title and ISBN are snapshotted. Adjustments use the original in-store
-        purchase and its remaining quantity/amount, even after preference withdrawal or catalog
-        removal. Original ledger and shopper deletion remain intact. Repeated reference/type/SKU
-        returns the existing ID only for the same transaction details; changed details conflict.
-        Adjustment time follows the original purchase within seven days.
+      description: Only owner or outcome_verify staff may record. Purchases require an offered counter code/current
+        SKU; title and ISBN are snapshotted. Adjustments use the original in-store purchase and its remaining
+        quantity/amount, even after preference withdrawal or catalog removal. Original ledger and shopper
+        deletion remain intact. Repeated reference/type/SKU returns the existing ID only for the same
+        transaction details; changed details conflict. Adjustment time follows the original purchase within
+        seven days.
       x-required-role: staff-permission
       responses:
         "201":
@@ -2070,9 +2074,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Ack"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -2092,10 +2096,10 @@ paths:
     get:
       operationId: staff_readWeeklyReview
       summary: Read weekly evidence without unsupported winner claims
-      description: Read activity within UTC start inclusive / end exclusive, at most 366 days. Supply both
-        dates or neither; neither defaults to the last seven days. Assignments use assigned time,
-        runs request time, outcomes occurred time, withdrawals/decisions recorded time. Arm
-        summaries include assignments in the window. This is not a cohort conversion estimate.
+      description: Read activity within UTC start inclusive / end exclusive, at most 366 days. Supply both dates or
+        neither; neither defaults to the last seven days. Assignments use assigned time, runs request time,
+        outcomes occurred time, withdrawals/decisions recorded time. Arm summaries include assignments in the
+        window. This is not a cohort conversion estimate.
       x-required-role: staff-permission
       responses:
         "200":
@@ -2103,11 +2107,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Review"
+                $ref: "#/components/schemas/DemoReview"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -2135,8 +2139,8 @@ paths:
     get:
       operationId: staff_readJob
       summary: Read scoped job and permitted result
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       responses:
         "200":
@@ -2146,9 +2150,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Job"
         default:
-          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped
-            absence, 409 conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget,
-            502 upstream, 503 configuration, 504 deadline. No hidden fixture fallback.
+          description: Typed failure; 400 validation, 401 authentication, 403 authority/origin, 404 scoped absence, 409
+            conflict or unsafe state, 413 size, 422 no eligible items, 429 rate/budget, 502 upstream, 503
+            configuration, 504 deadline. No hidden fixture fallback.
           content:
             application/json:
               schema:
@@ -2166,8 +2170,8 @@ paths:
     patch:
       operationId: staff_confirmInventorySnapshot
       summary: Owner confirms the sample edition stock snapshot
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       x-required-role: staff-permission
       parameters:
         - name: sku
@@ -2237,16 +2241,16 @@ paths:
             schema:
               type: object
               additionalProperties: false
-      description: Independent sample staff session with server-enforced limited permissions. Owner-only
-        operations are denied.
+      description: Independent sample staff session with server-enforced limited permissions. Owner-only operations
+        are denied.
       security:
         - StaffSession: []
   /health:
     get:
       operationId: readLocalHealth
       summary: Check application identity and initialized local database
-      description: Returns success only after database initialization and a SELECT 1 query. This does not
-        verify live providers or public release.
+      description: Returns success only after database initialization and a SELECT 1 query. This does not verify
+        live providers or public release.
       x-required-role: public
       responses:
         "200":
@@ -2273,7 +2277,7 @@ paths:
                       - unconfigured
                   persistence:
                     type: string
-                    enum: [embedded-postgresql, hosted-postgresql]
+                    enum: [ embedded-postgresql, hosted-postgresql ]
                   databaseReady:
                     type: boolean
                     const: true
@@ -2290,6 +2294,133 @@ paths:
                   - publicRelease
         default:
           description: Typed failure; database initialization is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /workspace:
+    get:
+      operationId: readOwnerWorkspace
+      summary: Read the authenticated sample owner workspace
+      description: Read the authenticated sample owner workspace
+      x-required-role: owner
+      security:
+        - MerchantSession: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success; Cache-Control: no-store"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        default:
+          description: Typed failure; no-store. Identity/role denied, not found or expired export as applicable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /staff/workspace:
+    get:
+      operationId: readStaffWorkspace
+      summary: Read the independently authenticated staff workspace with granted projections
+      description: Read the independently authenticated staff workspace with granted projections
+      x-required-role: staff-permission
+      security:
+        - StaffSession: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success; Cache-Control: no-store"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        default:
+          description: Typed failure; no-store. Identity/role denied, not found or expired export as applicable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /sample-csv:
+    get:
+      operationId: downloadOwnerSampleCsv
+      summary: Download own-store inventory in the existing CSV import format
+      description: Download own-store inventory in the existing CSV import format
+      x-required-role: owner
+      security:
+        - MerchantSession: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success; Cache-Control: no-store"
+          content:
+            text/csv:
+              schema:
+                type: string
+              example: |
+                sku,isbn13,title,author,format,language,price_minor,currency,on_hand,shelf,stock_observed_at,units_sold_90d
+        default:
+          description: Typed failure; no-store. Identity/role denied, not found or expired export as applicable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /staff/sample-csv:
+    get:
+      operationId: downloadStaffSampleCsv
+      summary: Requires inventory_review, campaign_draft, outcome_verify or review_read; no shopper access
+      description: Requires inventory_review, campaign_draft, outcome_verify or review_read; no shopper access
+      x-required-role: staff-permission
+      security:
+        - StaffSession: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success; Cache-Control: no-store"
+          content:
+            text/csv:
+              schema:
+                type: string
+              example: |
+                sku,isbn13,title,author,format,language,price_minor,currency,on_hand,shelf,stock_observed_at,units_sold_90d
+        default:
+          description: Typed failure; no-store. Identity/role denied, not found or expired export as applicable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /exports/{id}/download:
+    get:
+      operationId: downloadReadyOwnerExport
+      summary: Download own ready export before its 15-minute expiry; 404 if absent, not ready or expired.
+        Staff/shopper denied. Format comes from the stored job; no public signed-token access.
+      description: Download own ready export before its 15-minute expiry; 404 if absent, not ready or expired.
+        Staff/shopper denied. Format comes from the stored job; no public signed-token access.
+      x-required-role: owner
+      security:
+        - MerchantSession: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: "Success; Cache-Control: no-store"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DemoExport"
+            text/csv:
+              schema:
+                type: string
+              example: |
+                data_mode,sku,title,author,price_minor,on_hand
+        default:
+          description: Typed failure; no-store. Identity/role denied, not found or expired export as applicable.
           content:
             application/json:
               schema:
@@ -2354,6 +2485,9 @@ components:
         - message
         - requestId
         - retryable
+      description: "SS-S6-LOCAL-1 target: sanitized message maximum 200 characters, stable code/requestId/retryable.
+        Bound validation issue messages at the server; do not expose input values or secrets. Runtime
+        alignment remains S5-B02."
     Ack:
       type: object
       additionalProperties: false
@@ -2729,20 +2863,31 @@ components:
       properties:
         interestIds:
           type: array
-          items: *a1
+          items:
+            type: string
+            minLength: 1
+            maxLength: 200
           minItems: 1
           maxItems: 3
           uniqueItems: true
-        budgetMinor: *a13
+        budgetMinor:
+          type: integer
+          minimum: 0
+          maximum: 1000000
         excludedSkus:
           type: array
-          items: *a1
+          items:
+            type: string
+            minLength: 1
+            maxLength: 80
           maxItems: 100
           uniqueItems: true
       required:
         - interestIds
         - budgetMinor
         - excludedSkus
+      description: "SS-S6-LOCAL-1 target: unique excluded SKUs, 1–80 characters; server agreement still requires
+        S5-B02. Existing runtime did not enforce all these bounds/uniqueness."
     Recommendation:
       type: object
       additionalProperties: false
@@ -2943,8 +3088,8 @@ components:
           type: string
           minLength: 1
           maxLength: 200
-          description: Required for a purchase. Not required or used to authorize a return/correction; that
-            uses the original transaction.
+          description: Required for a purchase. Not required or used to authorize a return/correction; that uses the
+            original transaction.
         sku:
           type: string
           minLength: 1
@@ -3198,3 +3343,682 @@ components:
         - revision
         - inviteUrl
         - inviteExpiresAt
+    DemoReview:
+      description: "Current demo profile: activity counts only, never a pilot or conversion result. UI
+        unavailable/loading state is distinct from a successful measured-zero response. MissingOutcomes
+        remains a legacy proxy, not measured missingness; supplied work seconds are not a measured effort
+        baseline."
+      allOf:
+        - $ref: "#/components/schemas/Review"
+        - type: object
+          properties:
+            dataMode:
+              const: demo
+            evidenceStatus:
+              const: simulation
+            analysisVersion:
+              const: demo-v3
+            periodBasis:
+              const: activity_window
+            differencePercentagePoints:
+              type: "null"
+            intervalLower:
+              type: "null"
+            intervalUpper:
+              type: "null"
+          required:
+            - generationRuns
+            - withdrawnVisits
+            - periodBasis
+            - periodNotice
+    StoredBook:
+      type: object
+      additionalProperties: false
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 200
+        isbn13:
+          type: string
+          pattern: ^[0-9]{13}$
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        author:
+          type: string
+          minLength: 1
+          maxLength: 200
+        format:
+          type: string
+          minLength: 1
+          maxLength: 200
+        language:
+          type: string
+          minLength: 1
+          maxLength: 200
+        priceMinor:
+          type: integer
+          minimum: 0
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+        shelf:
+          type: string
+          minLength: 1
+          maxLength: 200
+        observedAt:
+          type: string
+          format: date-time
+        mappingStatus:
+          type: string
+          enum:
+            - unresolved
+            - suggested
+            - confirmed
+            - excluded
+        mappingId:
+          type: string
+          format: uuid
+        onHand:
+          type: integer
+          minimum: 0
+        unitsSold90d:
+          type: integer
+          minimum: 0
+        entityId:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        color:
+          type: string
+        revision:
+          type: integer
+          minimum: 1
+      required:
+        - sku
+        - isbn13
+        - title
+        - author
+        - format
+        - language
+        - priceMinor
+        - currency
+        - onHand
+        - shelf
+        - observedAt
+        - unitsSold90d
+        - mappingId
+        - mappingStatus
+        - tags
+        - color
+        - revision
+    StoredRule:
+      type: object
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - exclude_sku
+            - require_language
+            - require_format
+            - max_price_minor
+        operand:
+          oneOf:
+            - type: string
+              minLength: 1
+              maxLength: 200
+            - type: integer
+              minimum: 0
+        scope:
+          type: string
+          enum:
+            - store
+            - campaign
+        campaignId:
+          type: string
+          format: uuid
+        example:
+          $ref: "#/components/schemas/RuleCase"
+        counterexample:
+          $ref: "#/components/schemas/RuleCase"
+        reviewAt:
+          type: string
+          format: date-time
+        id:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+        history:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              revision:
+                type: integer
+              active:
+                type: boolean
+              reviewAt: &a16
+                type: string
+                format: date-time
+              changedAt: *a16
+            required:
+              - revision
+              - active
+              - reviewAt
+              - changedAt
+      required:
+        - id
+        - revision
+        - type
+        - operand
+        - scope
+        - example
+        - counterexample
+        - reviewAt
+        - active
+    OutcomeEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id: &a17
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - purchase
+            - return
+            - correction
+        sessionId: *a17
+        sku: &a19
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        amountMinor:
+          type: integer
+          minimum: 0
+        currency:
+          const: USD
+        occurredAt: &a18
+          type: string
+          format: date-time
+        recordedAt: *a18
+        receiptDigest: *a19
+        parentEventId: *a17
+        reason: *a19
+        dataMode:
+          const: demo
+        bookTitle: *a19
+        isbn13: *a19
+      required:
+        - id
+        - type
+        - sessionId
+        - sku
+        - quantity
+        - amountMinor
+        - currency
+        - occurredAt
+        - recordedAt
+        - receiptDigest
+        - dataMode
+    WorkspaceOutcome:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - purchase
+            - return
+            - correction
+        sessionId:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        amountMinor:
+          type: integer
+          minimum: 0
+        currency:
+          const: USD
+        occurredAt:
+          type: string
+          format: date-time
+        recordedAt:
+          type: string
+          format: date-time
+        parentEventId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        dataMode:
+          const: demo
+        bookTitle:
+          type: string
+        isbn13:
+          type: string
+        receiptReference:
+          type: string
+      required:
+        - id
+        - type
+        - sessionId
+        - sku
+        - quantity
+        - amountMinor
+        - currency
+        - occurredAt
+        - recordedAt
+        - dataMode
+        - receiptReference
+    ReviewDecision:
+      type: object
+      additionalProperties: false
+      properties:
+        id: &a20
+          type: string
+          format: uuid
+        campaignId: *a20
+        decision:
+          type: string
+          enum:
+            - keep
+            - change
+            - retire
+        rationale:
+          type: string
+        activeWorkSeconds:
+          type: integer
+          minimum: 0
+        at: &a21
+          type: string
+          format: date-time
+        periodStart: *a21
+        periodEnd: *a21
+      required:
+        - id
+        - campaignId
+        - decision
+        - rationale
+        - activeWorkSeconds
+        - at
+    StoredPolicy:
+      type: object
+      additionalProperties: false
+      properties:
+        id: &a22
+          type: string
+          format: uuid
+        revision: &a24
+          type: integer
+        campaignId: *a22
+        rationale: &a23
+          type: string
+        rankOffsets:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              sku: *a23
+              positions: *a24
+            required:
+              - sku
+              - positions
+        trainingExperimentIds:
+          type: array
+          items: *a22
+        evaluationExperimentId: *a22
+        status:
+          type: string
+          enum:
+            - proposed
+            - insufficient_evidence
+            - approved
+      required:
+        - id
+        - revision
+        - campaignId
+        - rationale
+        - rankOffsets
+        - trainingExperimentIds
+        - status
+    StoredExperiment:
+      type: object
+      additionalProperties: false
+      properties:
+        id: &a25
+          type: string
+          format: uuid
+        revision: &a27
+          type: integer
+        campaignVersionId: *a25
+        comparison:
+          type: string
+          enum:
+            - qloo_vs_llm
+            - policy_vs_policy
+        protocolVersion: &a26
+          type: string
+        modelVersion: *a26
+        policyVersionIds:
+          type: array
+          items: *a26
+        plannedSampleSize: *a27
+        enrollmentClosesAt: &a28
+          type: string
+          format: date-time
+        state:
+          type: string
+          enum:
+            - draft
+            - frozen
+            - ended
+        endedAt: *a28
+        endReason: *a26
+      required:
+        - id
+        - revision
+        - campaignVersionId
+        - comparison
+        - protocolVersion
+        - modelVersion
+        - policyVersionIds
+        - plannedSampleSize
+        - enrollmentClosesAt
+        - state
+    MembershipView:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        identityId:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+            enum:
+              - inventory_review
+              - campaign_draft
+              - outcome_verify
+              - review_read
+        expiresAt: &a29
+          type:
+            - string
+            - "null"
+          format: date-time
+        inviteExpiresAt: *a29
+        status:
+          type: string
+          enum:
+            - active
+            - pending
+            - legacy_preview
+      required:
+        - id
+        - identityId
+        - permissions
+        - expiresAt
+        - inviteExpiresAt
+        - status
+    Workspace:
+      type: object
+      additionalProperties: false
+      properties:
+        id: &a31
+          type: string
+          format: uuid
+        name: &a30
+          type: string
+        csrfToken: *a30
+        actor:
+          type: string
+          enum:
+            - owner
+            - staff
+        identityLabel: *a30
+        permissions:
+          type: array
+          items: *a30
+        expiresAt: &a32
+          type: string
+          format: date-time
+        revision:
+          type: integer
+          minimum: 1
+        importId: *a31
+        dataMode:
+          const: demo
+        providerMode:
+          type: string
+          enum:
+            - fixture
+            - live
+            - unconfigured
+        persistence:
+          type: string
+          enum:
+            - embedded-postgresql
+            - hosted-postgresql
+            - unconfigured
+        books:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItem"
+        campaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/Campaign"
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredRule"
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkspaceOutcome"
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReviewDecision"
+        policies:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredPolicy"
+        experiments:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredExperiment"
+        audit:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id: *a31
+              action: *a30
+              at: *a32
+              target: *a30
+            required:
+              - id
+              - action
+              - at
+              - target
+        memberships:
+          type: array
+          items:
+            $ref: "#/components/schemas/MembershipView"
+      required:
+        - id
+        - name
+        - csrfToken
+        - actor
+        - identityLabel
+        - permissions
+        - expiresAt
+        - revision
+        - importId
+        - dataMode
+        - providerMode
+        - persistence
+        - books
+        - campaigns
+        - rules
+        - outcomes
+        - reviews
+        - policies
+        - experiments
+        - audit
+        - memberships
+      description: Frozen own-store projection. Staff has no policies, experiments, audit or memberships; outcomes
+        require outcome_verify, reviews require review_read. Grants are server-enforced; schema validation
+        alone is not authorization proof.
+      allOf:
+        - if:
+            properties:
+              actor:
+                const: staff
+            required:
+              - actor
+          then:
+            properties:
+              policies:
+                maxItems: 0
+              experiments:
+                maxItems: 0
+              audit:
+                maxItems: 0
+              memberships:
+                maxItems: 0
+    ExportCampaign:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        versionId:
+          type: string
+          format: uuid
+        revision:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        state:
+          type: string
+          enum:
+            - draft
+            - approved
+            - active
+            - superseded
+            - retired
+        candidateSkus:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 200
+        ruleRevisionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        inventoryImportId:
+          type: string
+          format: uuid
+        dataMode:
+          type: string
+          enum:
+            - demo
+            - pilot
+        plan:
+          type: string
+        evidenceRefs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        approvedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - versionId
+        - revision
+        - title
+        - state
+        - candidateSkus
+        - ruleRevisionIds
+        - inventoryImportId
+        - dataMode
+    DemoExport:
+      type: object
+      additionalProperties: false
+      properties:
+        dataMode:
+          const: demo
+        storeName:
+          type: string
+        exportedAt:
+          type: string
+          format: date-time
+        inventory:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredBook"
+        outcomes:
+          type: array
+          items:
+            $ref: "#/components/schemas/OutcomeEvent"
+        campaigns:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExportCampaign"
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredRule"
+        reviews:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReviewDecision"
+      required:
+        - dataMode
+        - storeName
+        - exportedAt
+        - inventory
+        - outcomes
+        - campaigns
+        - rules
+        - reviews
+      description: Owner-only sample export; existing stored mappings/results do not establish provider
+        redistribution rights. Retention/use gates still apply. No invitation, owner or shopper bearer token
+        fields.
+x-read-model-supplement: "DATA_CONTRACTS.md Stage 6 read-model supplement is now encoded for the five listed
+  GET operations under SS-S6-LOCAL-1. No permission or behavior expansion. Source-conformance evidence belongs
+  to the Stage 7 batch receipt."

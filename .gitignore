@@ -6,11 +6,7 @@ node_modules/
 .env.*
 !.env.example
 output/
-outputs/
+.playwright-cli/
 graphify-out/
 .vercel/
-.playwright-cli/
-.hackops/
-.loop/
-.devpost-hackathon-state.json
 *.log

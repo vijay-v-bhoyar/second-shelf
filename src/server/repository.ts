@@ -68,6 +68,16 @@ export async function getStore(storeId: string): Promise<Store> {
   if (!rows[0]) throw new AppError("NOT_FOUND","This sample store has expired or was deleted.",404);
   return rows[0].data;
 }
+
+/** Public display lookup without the expired-store cleanup performed by allStores. */
+export async function findActiveDisplay(token: string): Promise<Store | undefined> {
+  const result=await(await db()).query<{data:Store}>(`SELECT data FROM stores
+    WHERE expires_at > now() AND EXISTS (
+      SELECT 1 FROM jsonb_array_elements(data->'campaigns') campaign
+      WHERE campaign->>'token'=$1 AND campaign->>'state'='active'
+    ) LIMIT 1`,[token]);
+  return result.rows[0]?.data;
+}
 export async function findOwner(tokenHash: string) {
   return (await (await db()).query<{data:Store}>("SELECT data FROM stores WHERE owner_hash=$1 AND expires_at > now()",[tokenHash])).rows[0]?.data;
 }

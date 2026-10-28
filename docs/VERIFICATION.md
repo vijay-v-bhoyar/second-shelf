@@ -1,3 +1,23 @@
+# October 28, 2026: MCP candidate verification
+
+Candidate SS-RC-20261028-MCP-42b03880b645. Runtime SHA-256: `42b03880b6453acc075a038962bd87be1b5a68899f078e25209bdb14cc987fbe`.
+
+Three bounded read-only MCP discovery tools are implemented over Streamable HTTP. An external agent can inspect an active public display, resolve a movie/music interest and request eligible books constrained by stock, budget and work rejection. Approval, activation, purchase, payment, private-store enumeration and export are not agent tools. Daily usage accounting remains an effect. See [agent guide](MCP_AGENT_GUIDE.md).
+
+Observed checks on this candidate: 159 configured unit/API tests, 92 maintained browser scenarios, nine production HTTP MCP steps, build, typecheck, lint, REST structural contract and isolated restore passed. The recorded dependency audit found zero known vulnerabilities. A sanitized 125-file source archive was extracted, hash-checked, installed afresh and passed all 159 tests. An actual assistant-selected MCP walkthrough used fixture data and is distinct from the scripted protocol check. Private complete logs and receipts are retained by the owner.
+
+An additional unchanged-candidate Windows Node 24.22.1 run passed production build, all 159 tests and nine HTTP MCP checks. This is local compatibility evidence, not the target Linux/serverless verification.
+
+A separately authorized private live-Qloo MCP check passed search, stock/budget-constrained ranking and work rejection on a synthetic shop with two resolved book identities. Six total Qloo calls were consumed across two explicitly approved runs, including the preserved initial stop on an ambiguous third book title. No retries or fallback were used. Inventory, prices and outcomes remain synthetic. This was a scripted MCP client; the actual assistant-selected fixture walkthrough is separate evidence. Exact provider responses and identifiers remain private.
+
+Current hosted alignment, applicable public-output/retention terms, account costs and unassisted human acceptance remain unverified. There is no embedded LLM planner, genuine same-LLM comparator, measured business benefit or completed merchant pilot. A successful bounded check does not establish organizer acceptance or submission. USD 10 remains the owner's ceiling; no further provider call is authorized by the exhausted test allowance.
+
+The CLI examples require an active disposable display on a local fixture server. No credentials or personal data are needed. Do not run historical live/hosted mutation scripts without their separate authorization and limits. This report does not authorize provider calls, publication or deployment.
+
+---
+
+The following dated records are preserved historical evidence for older source; statements describing their current state do not describe the MCP candidate above.
+
 # October 20, 2026: current source verification
 
 Runtime SHA-256: `12a293b0c502102475f83f4141ccd1fc79ed9ed2022a7745f0d756cc9ef0256d`.

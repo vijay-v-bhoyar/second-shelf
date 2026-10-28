@@ -4,5 +4,8 @@ export function defaultReviewDates(){
 }
 export function reviewDateQuery(start:string,end:string){
   if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end))throw new Error("Choose review start and end dates.");
+  const from=Date.parse(`${start}T00:00:00.000Z`),until=Date.parse(`${end}T00:00:00.000Z`);
+  if(!Number.isFinite(from)||!Number.isFinite(until)||new Date(from).toISOString().slice(0,10)!==start||new Date(until).toISOString().slice(0,10)!==end)throw new Error("Choose valid UTC calendar dates.");
+  if(until<=from||until-from>366*86400000)throw new Error("Review end must follow start within a maximum of 366 days.");
   return new URLSearchParams({periodStart:`${start}T00:00:00.000Z`,periodEnd:`${end}T00:00:00.000Z`}).toString();
 }
