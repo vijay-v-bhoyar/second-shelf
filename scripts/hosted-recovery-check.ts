@@ -36,7 +36,7 @@ try{
   const queued=(await api("shopper/recommendations",{interestIds:[film],budgetMinor:2000,excludedSkus:[]},shopper,"POST",true)).data;calls++;
   let job=queued;for(let i=0;i<80&&!['succeeded','failed'].includes(job.status);i++){await new Promise(r=>setTimeout(r,350));job=(await api("jobs/"+queued.id,undefined,shopper,"GET",true)).data;}
   assert.equal(job.status,"succeeded");assert.equal(job.result.evidenceMode,"live");assert.ok(job.result.items.length>0);
-  const code=(await api("shopper/purchase-code",{runId:queued.id},shopper,"POST",true)).data.code,book=job.result.items[0];
+  const book=job.result.items[0],code=(await api("shopper/purchase-code",{runId:queued.id,sku:book.sku},shopper,"POST",true)).data.code;
   await api("outcomes",{type:"purchase",sessionCode:code,sku:book.sku,quantity:1,amountMinor:book.priceMinor,currency:"USD",occurredAt:new Date().toISOString(),receiptReference:"RECOVERY-SYNTHETIC-"+randomUUID()},kept);
   checks.push({name:"Actual public synthetic tenant, staff, shopper, live recommendation and outcome witnesses",status:"PASS"});
   stage="capture only owned data into isolated schema";

@@ -81,6 +81,22 @@ function makeJob(s:Store,kind:string,payload:Payload,sessionId?:string,staffSess
   const job:InternalJob={id:id(),status:"queued",createdAt:now(),deadlineAt:new Date(Date.now()+30000).toISOString(),kind,payload,sessionId,staffSessionId,attempts:0};s.jobs.push(job);return publicJob(job);
 }
 function publicJob(job:Job):Job{const {id,status,createdAt,deadlineAt,result,error}=job;return{id,status,createdAt,deadlineAt,...(result?{result}:{}),...(error?{error}:{})};}
+function validateCounterSelection(s:Store,ctx:Context,body:Payload){
+  const input=z.object({runId:z.string().uuid(),sku:z.string().min(1).max(80)}).strict().parse(body);
+  const shopper=s.shoppers.find(x=>x.id===ctx.sessionId);requireThat(shopper,"UNAUTHENTICATED","Open the bookstore QR page first.",401);
+  const run=s.jobs.find(j=>j.id===input.runId&&j.sessionId===shopper.id) as InternalJob|undefined;
+  const items=run?.result?.items;
+  const offered=Array.isArray(items)?(items as Payload[]).find(b=>b.sku===input.sku):undefined;
+  requireThat(run?.status==="succeeded"&&run.kind==="recommendations"&&offered,"FORBIDDEN","Choose a book actually offered to your session.",403);
+  const preferences=schemas.recommendation.safeParse(run.payload);
+  const campaign=s.campaigns.find(c=>c.versionId===shopper.versionId);
+  const book=s.books.find(b=>b.sku===input.sku);
+  requireThat(preferences.success&&campaign?.state==="active"&&book
+    &&eligible(s,book,preferences.data.budgetMinor,campaign)
+    &&book.entityId===offered.entityId&&book.priceMinor===offered.priceMinor&&book.currency===offered.currency
+    &&!preferences.data.excludedSkus.includes(book.sku)&&!isRejected(shopper,rejectedWorks(s,shopper),book),
+  "CONFLICT","This book's availability or offer changed. Refresh matches before choosing it again.",409);
+}
 async function runJob(storeId:string,jobId:string) {
   g.__ssRunning??=new Set();if(g.__ssRunning.has(jobId))return;g.__ssRunning.add(jobId);const runnerToken=id();
   try{
@@ -274,7 +290,10 @@ export async function dispatch(request:Request,parts:string[],defer?:(task:()=>P
     const reply=await mutateStore(ctx.store.id,s=>{
       authorize(ctx,method,parts,s);
       const replayKey=`${ctx.kind}:${ctx.staffSessionId??ctx.sessionId??"owner"}:${key}`;
-      const prior=s.requests[replayKey];if(prior){requireThat(prior.hash===fingerprint,"CONFLICT","This request key was used with different input.");return{data:prior.data,status:prior.status};}
+      const prior=s.requests[replayKey];if(prior){requireThat(prior.hash===fingerprint,"CONFLICT","This request key was used with different input.");
+        // Reusing an attribution code must not reuse an outdated availability decision.
+        if(path==="shopper/purchase-code")validateCounterSelection(s,ctx,body);
+        return{data:prior.data,status:prior.status};}
       const response=perform(s,ctx,method,parts,body,base);
       s.requests[replayKey]={hash:fingerprint,data:response.data,status:response.status??200};
       if(Object.keys(s.requests).length>500){const oldest=Object.keys(s.requests)[0];delete s.requests[oldest];}
@@ -378,7 +397,7 @@ function perform(s:Store,ctx:Context,method:string,parts:string[],body:Payload,b
       return{data:{id:run.id,revision:1}};
     }
     if(objectId==="purchase-code"){
-      const input=z.object({runId:z.string().uuid()}).strict().parse(body);requireThat(s.jobs.some(j=>j.id===input.runId&&j.sessionId===shopper.id&&j.status==="succeeded"),"FORBIDDEN","Complete discovery before asking for a counter code.",403);shopper.code??=secret().slice(0,12).toUpperCase();return{data:{code:shopper.code,expiresAt:shopper.expiresAt}};
+      validateCounterSelection(s,ctx,body);shopper.code??=secret().slice(0,12).toUpperCase();return{data:{code:shopper.code,expiresAt:shopper.expiresAt}};
     }
   }
   if(head==="outcomes"){

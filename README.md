@@ -1,10 +1,18 @@
-# Second Shelf: local MCP candidate
+# Second Shelf: bookstore discovery with MCP tools
 
-Candidate SS-RC-20261028-MCP-42b03880b645, October 28, 2026. MIT-licensed prototype for reviewed bookstore discovery displays, with bounded read-only MCP tools for an external agent. This package is a local candidate, not a verified public release.
+Source candidate SS-LOCAL-HANDOFF-20261029-1, October 29, 2026. MIT-licensed prototype for reviewed bookstore discovery displays, with bounded read-only MCP tools for an external agent. The public demo at https://second-shelf-liard.vercel.app/ remains on the earlier fixture release described below; this handoff repair has passed local checks and is not yet deployed. Live Qloo calls are disabled on that public demo.
 
-## Latest bounded verification
+## Local handoff repair, October 29, 2026
 
-The unchanged candidate also passed a Windows Node 24.22.1 build, 159 tests and nine HTTP MCP checks. A separately authorized private MCP client passed live Qloo search, constrained ranking and rejection on a synthetic shop. Six provider calls were used across two approved runs, preserving an initial stop on an ambiguous book title. This is not current hosted, general provider-rights, human or benefit proof. See [dated verification](docs/VERIFICATION.md). No further provider calls are authorized by the exhausted test allowance.
+Counter handoff rechecks the selected book and cached retries against current availability. A stale selection clears the old code and offers an explicit refresh. The request now requires both `runId` and `sku`; client and server must ship together. Local checks passed: 176 tests, lint, TypeScript, API contract, restoration, production build and browser recovery. Tests used an isolated Node 24 runtime with declared dependencies because the working checkout dependencies had drifted. Test data was synthetic, no Qloo calls were made, and the test store was deleted. These results do not establish hosted behavior or unassisted human usability for this repair.
+
+## Public fixture release, October 29, 2026
+
+The public URL serves source commit `0b4a1da9f8a1ffb545196ce28862d85753f70c42`. Ten bounded public bookstore/MCP workflow checks and five independent readbacks passed; both synthetic test stores were deleted. A separate isolated hosted run passed eleven checks, including database serialization and rollback. The public and isolated runs made no Qloo calls. These are automated synthetic checks, not independent human validation, a live-Qloo public demonstration or organizer acceptance.
+
+## Earlier bounded verification
+
+The earlier candidate also passed a Windows Node 24.22.1 build, 159 tests and nine HTTP MCP checks. A separately authorized private MCP client passed live Qloo search, constrained ranking and rejection on a synthetic shop. Six provider calls were used across two approved runs, preserving an initial stop on an ambiguous book title. This is not current hosted, general provider-rights, human or benefit proof. See [dated verification](docs/VERIFICATION.md). No further provider calls are authorized by the exhausted test allowance.
 
 ## Reproduce on Windows
 
@@ -31,6 +39,6 @@ Open http://127.0.0.1:4397 on this computer. Ctrl+C stops the owned server. Crea
 
 The app uses Next.js 16.4.3 and the exact-pinned MCP SDK 2.4.0. Three tools inspect an active display, resolve a movie/music interest and recommend eligible books. There are no agent approval, payment, export, private enumeration or purchase tools. Quota accounting remains an effect. The adapter introduces no paid runtime model service; any calling agent has its own account and terms.
 
-Current local evidence includes 159 unit/API tests, 92 maintained browser scenarios, nine production HTTP MCP steps, build/type/lint/REST-contract/restore and a zero-known-vulnerability audit. A separate actual assistant-selected MCP walkthrough used synthetic data. This is not live Qloo, independent human evaluation, an embedded LLM planner, a genuine LLM-only comparison or measured sales lift. Current public alignment, organizer interpretation, provider rights, operating costs and human acceptance remain unresolved.
+Current local evidence includes 159 unit/API tests, 92 maintained browser scenarios, nine production HTTP MCP steps, build/type/lint/REST-contract/restore and a zero-known-vulnerability audit. A separate actual assistant-selected MCP walkthrough used synthetic data. This is not live Qloo, independent human evaluation, an embedded LLM planner, a genuine LLM-only comparison or measured sales lift. Public source/runtime alignment is verified for fixture mode. Judge-accessible live-Qloo behavior, applicable provider rights/account scope, operating-cost evidence and human acceptance remain separate open questions.
 
 This sanitized archive excludes credentials, private evidence, original project records, databases, build caches and Git history. The original source and earlier artifacts remain in the owner's workspace. Parent-workspace evidence links in operational guides are intentionally unavailable in this package. Historical live/hosted scripts are retained for reproducibility; their presence grants no permission to run them. Browser suites require a local test server and an installed Chromium; no browser download is triggered by this README.

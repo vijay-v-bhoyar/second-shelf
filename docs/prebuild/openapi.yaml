@@ -820,7 +820,9 @@ paths:
     post:
       operationId: issuePurchaseCode
       summary: Issue a scoped expiring cashier-attribution code
-      description: Issue a scoped expiring cashier-attribution code
+      description: Validate a selected book from this shopper's successful recommendation run against current stock,
+        identity, price, original budget, rejection and display rules before returning the visit's attribution code.
+        Availability is rechecked even on idempotent retries; changed offers return 409. This is not a reservation.
       x-required-role: shopper
       responses:
         "200":
@@ -860,8 +862,13 @@ paths:
               additionalProperties: false
               properties:
                 runId: *a2
+                sku:
+                  type: string
+                  minLength: 1
+                  maxLength: 80
               required:
                 - runId
+                - sku
   /outcomes:
     post:
       operationId: verifyOutcome

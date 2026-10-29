@@ -4,6 +4,8 @@ The new MCP interface exposes read-only discovery for an active public bookstore
 
 ## Connect
 
+The verified public fixture endpoint is https://second-shelf-liard.vercel.app/mcp. Its Qloo calls are disabled; returned recommendations are synthetic. Create an active sample display through the public app and supply its public display token. No owner/staff credential belongs in an agent prompt or tool configuration.
+
 Transport: stateless Streamable HTTP at the app's `/mcp` path. POST uses the MCP SDK; GET/DELETE return 405 because this server does not retain MCP sessions or offer an event stream. The implementation uses exact-pinned `@modelcontextprotocol/server` and client 2.4.0. Server credentials stay in private environment configuration. No new paid model service is used by the adapter; any calling agent retains its own account and billing terms.
 
 Create and activate a disposable sample display through the ordinary bookstore interface. Its public shopper link ends in the display token; supply that token to tools. A token for a draft, retired, deleted or expired display fails. Public tokens allow only already-public discovery and never act as owner/staff credentials. There is no tool that enumerates private stores or displays.
@@ -29,4 +31,4 @@ This CLI connects through the official MCP client. A scripted protocol check is 
 - Remote clients must use the exact authorized HTTPS endpoint. The server validates Host/Origin and has no arbitrary remote-fetch tool. Hosted operation requires its exact configured application origin. Client annotations are descriptive hints; server code enforces permissions.
 - The tool does not persist recommendation bodies, taste choices or shopper history. The calling agent may retain its conversation, so do not provide personal data. This retention statement applies only to the MCP discovery path; the existing browser workflow has its separately documented retention. Qloo's applicable public-use and data rights remain a release gate.
 
-Current status: local implementation and synthetic checks pass. A separately authorized private scripted MCP check passed live Qloo search, constrained ranking and work rejection on two resolved book identities. No public endpoint deployment, paid model run, general provider-rights clearance or final submission is claimed. See [dated verification](VERIFICATION.md). Complete private receipts are retained by the owner.
+Current status: local implementation and synthetic checks pass. A separately authorized private scripted MCP check passed live Qloo search, constrained ranking and work rejection on two resolved book identities. The October 29 public fixture release passed canonical MCP and bookstore workflow checks. No public live-Qloo demonstration, paid model run, general provider-rights clearance or final submission is claimed. See [dated verification](VERIFICATION.md). Complete private receipts are retained by the owner.

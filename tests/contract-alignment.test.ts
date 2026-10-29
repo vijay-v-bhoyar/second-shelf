@@ -120,7 +120,7 @@ test("synthetic API read contracts, isolation and validation failures", async t 
       }
       assert.equal(job.status, "succeeded");
       const item = job.result.items[0]; assert.ok(item);
-      const counter = await call(shopper, "shopper/purchase-code", { runId: job.id }); assert.equal(counter.response.status, 200);
+      const counter = await call(shopper, "shopper/purchase-code", { runId: job.id, sku: item.sku }); assert.equal(counter.response.status, 200);
       const purchase = await call(cashier.actor, "staff/outcomes", { type: "purchase", sessionCode: counter.data.code, sku: item.sku, quantity: 1, amountMinor: item.priceMinor, currency: "USD", occurredAt: new Date().toISOString(), receiptReference: "synthetic-contract-receipt" });
       assert.equal(purchase.response.status, 201);
       const current = (await getStore(storeId)).campaigns[0];
