@@ -1,22 +1,36 @@
 # Second Shelf: bookstore discovery with MCP tools
 
-Source candidate SS-LOCAL-HANDOFF-20261029-1, October 29, 2026. MIT-licensed prototype for reviewed bookstore discovery displays, with bounded read-only MCP tools for an external agent. The public demo at https://second-shelf-liard.vercel.app/ remains on the earlier fixture release described below; this handoff repair has passed local checks and is not yet deployed. Live Qloo calls are disabled on that public demo.
+Second Shelf connects a shopper's films or musicians with books in a reviewed bookstore display. The bookseller controls identities, dated inventory, approval and activation. Shoppers choose a budget and can reject a work; authorized staff record fictional purchases, returns and corrections.
 
-## Local handoff repair, October 29, 2026
+**Public demo:** https://second-shelf-liard.vercel.app/  
+**Project:** https://devpost.com/software/second-shelf  
+**License:** [MIT](LICENSE), covering the original application code. Provider content and third-party software retain their applicable terms.
 
-Counter handoff rechecks the selected book and cached retries against current availability. A stale selection clears the old code and offers an explicit refresh. The request now requires both `runId` and `sku`; client and server must ship together. Local checks passed: 176 tests, lint, TypeScript, API contract, restoration, production build and browser recovery. Tests used an isolated Node 24 runtime with declared dependencies because the working checkout dependencies had drifted. Test data was synthetic, no Qloo calls were made, and the test store was deleted. These results do not establish hosted behavior or unassisted human usability for this repair.
+## Current public release — October 29, 2026
 
-## Public fixture release, October 29, 2026
+The public app uses **live Qloo search and cultural ranking** with synthetic bookstore inventory, prices and outcomes. The deployed application code matches commit `54862acb8052fbe34fb4931840ae5d377aa80db9`, including the stale-availability handoff repair. Later documentation-only commits may have a different source-repository head without changing this deployed application code.
 
-The public URL serves source commit `0b4a1da9f8a1ffb545196ce28862d85753f70c42`. Ten bounded public bookstore/MCP workflow checks and five independent readbacks passed; both synthetic test stores were deleted. A separate isolated hosted run passed eleven checks, including database serialization and rollback. The public and isolated runs made no Qloo calls. These are automated synthetic checks, not independent human validation, a live-Qloo public demonstration or organizer acceptance.
+The exact 128-file source package passed 176 automated tests. The successful release passed eleven hosted workflow checks using six Qloo calls; a separate rendered-page check used one live film lookup. The two transient test stores were independently confirmed deleted. These checks establish specific technical behavior, not human usability, real commerce or comparative business benefit. [Verification and limits](docs/VERIFICATION.md).
 
-## Earlier bounded verification
+## Try the bookstore workflow
 
-The earlier candidate also passed a Windows Node 24.22.1 build, 159 tests and nine HTTP MCP checks. A separately authorized private MCP client passed live Qloo search, constrained ranking and rejection on a synthetic shop. Six provider calls were used across two approved runs, preserving an initial stop on an ambiguous book title. This is not current hosted, general provider-rights, human or benefit proof. See [dated verification](docs/VERIFICATION.md). No further provider calls are authorized by the exhausted test allowance.
+1. Choose **Try a bookstore demo** at the public app. Use fictional data only.
+2. In **Your inventory**, review the identities for Piranesi and The Night Circus. Confirm only the matching book results; leave ambiguous or unmatched identities unresolved.
+3. In **Cultural displays**, retain the eligible books, save the draft, approve it and activate it. Approval and activation are separate actions.
+4. Open the shopper experience. Choose a film or musician and a budget, then request books. Results label their source. Rejecting a work excludes its other confirmed editions for that visit.
+5. Explore the counter workflow with fictional outcomes. A handoff rechecks current availability, including cached retries. It does not reserve stock or process payment.
 
-## Reproduce on Windows
+Demo stores and stock eligibility expire after 24 hours. Create a fresh demo from the canonical app if a saved display expires. Each new live store requires identity review and display approval. The instance has a persistent 100-Qloo-call limit per UTC day; quota and upstream errors are shown explicitly. Availability and account capacity can change.
 
-Use Node.js and npm in a clean directory. Do not copy private environment files, credentials or production databases. In a fresh PowerShell session:
+## Agent access
+
+The public Streamable HTTP endpoint is https://second-shelf-liard.vercel.app/mcp. Three read-only discovery tools inspect an active public display, resolve a film/music interest and recommend eligible books. The external agent supplies the public display token and uses its own client/account. Owner or staff credentials must never be passed to an agent. [Connection guide and tool boundaries](docs/MCP_AGENT_GUIDE.md).
+
+The app has no embedded LLM planner. Tools cannot approve displays, enumerate private stores, export records, reserve stock, take payment or record purchases. Qloo usage counters are still effects of discovery calls.
+
+## Reproduce locally on Windows
+
+Use Node.js 24 and npm in a clean directory. Do not copy private environment files, credentials or production databases. These commands use local fixture data and make no live Qloo calls:
 
 ```powershell
 Get-ChildItem Env: | Where-Object { $_.Name -match '^(SECOND_SHELF_|QLOO_|NEXT_PUBLIC_)' -or $_.Name -in @('DATABASE_URL','VERCEL','DEMO_BASE_URL','NODE_OPTIONS') } | ForEach-Object { Remove-Item -LiteralPath ('Env:' + $_.Name) }
@@ -35,10 +49,10 @@ npm.cmd run test:restore
 npm.cmd run demo
 ```
 
-Open http://127.0.0.1:4397 on this computer. Ctrl+C stops the owned server. Create a disposable bookstore, review identities and inventory, approve and activate its display, then use the public display token with the MCP client. See [agent connection guide](docs/MCP_AGENT_GUIDE.md) for tool names, invocation and boundaries. No Qloo credential is needed for fixture mode. USD 2000 minor units means USD 20; recommendations do not reserve inventory or create purchases.
+Open http://127.0.0.1:4397 on this computer. Ctrl+C stops the owned server. Fixture results are illustrative and must not be described as live Qloo results. Browser suites additionally require their documented local server and installed Chromium. The runtime uses Next.js 16.4.3 and exact-pinned MCP SDK 2.4.0.
 
-The app uses Next.js 16.4.3 and the exact-pinned MCP SDK 2.4.0. Three tools inspect an active display, resolve a movie/music interest and recommend eligible books. There are no agent approval, payment, export, private enumeration or purchase tools. Quota accounting remains an effect. The adapter introduces no paid runtime model service; any calling agent has its own account and terms.
+## Evidence boundaries
 
-Current local evidence includes 159 unit/API tests, 92 maintained browser scenarios, nine production HTTP MCP steps, build/type/lint/REST-contract/restore and a zero-known-vulnerability audit. A separate actual assistant-selected MCP walkthrough used synthetic data. This is not live Qloo, independent human evaluation, an embedded LLM planner, a genuine LLM-only comparison or measured sales lift. Public source/runtime alignment is verified for fixture mode. Judge-accessible live-Qloo behavior, applicable provider rights/account scope, operating-cost evidence and human acceptance remain separate open questions.
+The outside tester's walkthrough is owner-confirmed automated feedback. A separate unassisted human test was waived; no human-usability or accessibility pass is claimed. An embedded planner, genuine LLM-only comparison and real-merchant beta are deferred. No sales uplift, time saving or comparative superiority has been measured.
 
-This sanitized archive excludes credentials, private evidence, original project records, databases, build caches and Git history. The original source and earlier artifacts remain in the owner's workspace. Parent-workspace evidence links in operational guides are intentionally unavailable in this package. Historical live/hosted scripts are retained for reproducibility; their presence grants no permission to run them. Browser suites require a local test server and an installed Chromium; no browser download is triggered by this README.
+Keep API credentials and raw Qloo responses out of public source. Event-specific guidance supports private server-side caching; it is not blanket permission to redistribute provider datasets, media or logos. An instance's configured cap is not proof of the provider account's quota or a monetary limit.

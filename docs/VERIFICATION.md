@@ -1,3 +1,35 @@
+# Second Shelf: verification of the October 29 live release
+
+The deployed application code matches `54862acb8052fbe34fb4931840ae5d377aa80db9`. Documentation-only updates do not imply another application deployment. The public app uses live Qloo with synthetic bookstore data; local reproduction defaults to fixtures.
+
+| Evidence | Recorded result | Scope and limit |
+|---|---|---|
+| Exact public source package | 128 files; 176 configured automated tests PASS | Isolated Node 24 runtime with declared dependencies; not a new human or hosted test |
+| Stale-availability repair | Selected-book and cached handoff rechecks; affected API/browser/build/type/lint/contract/restore checks PASS | Synthetic inputs; the repair requires both runId and sku |
+| Successful live hosted workflow | All eleven checks PASS | Live Qloo plus fictional stores and outcomes; details below |
+| Rendered public page | Sample label, live-Qloo disclosure, real film lookup, selected film and enabled discovery action PASS | Recommendation and counter actions were covered through the hosted API workflow, not this bounded rendered check |
+| Cleanup and preservation | Both transient stores absent, corresponding tombstones present; source/configuration/protection and unrelated aliases preserved | One explicitly labeled synthetic judge display was retained with normal 24-hour expiry |
+| Submission | Qloo entry 1246680 accepted October 29, 2026 at 19:22 Eastern and independently read back | A submission receipt is not an organizer eligibility judgment or award |
+
+The eleven hosted checks cover live health/database persistence; isolated bootstrap and idempotency; inventory preview/commit; mapping, approval/activation and cross-store isolation; staff permissions; shopper recommendations/rejection; MCP protocol/tools/recommendations/rejection; stale-availability handoff; purchase/return/correction arithmetic; scoped export; and deletion/access revocation.
+
+The successful release verification used seven actual Qloo calls: six in the hosted API workflow and one rendered film lookup. The shared counter ended at 16 on that dated run, including preserved earlier usage. This is a historical reading, not a current account balance or proof of unlimited access. Complete private receipts remain outside the source distribution.
+
+An earlier release attempt failed a synthetic stock assertion, was rolled back, and its two transient stores and deployment were removed. Local clock-skew reproduction motivated ordering synthetic verifier transactions strictly after the observed inventory snapshot. The corrected verifier passed the full hosted workflow without changing application accounting. The exact original hosted cause remains unconfirmed; its failure was not erased or converted into a pass.
+
+## Remaining coverage and operating limits
+
+- No new full rendered fresh-store-to-counter live journey has been recorded for this release. The API workflow and selected browser checks above are distinct evidence.
+- Demo stores and dated-stock eligibility expire after 24 hours. Start from the canonical app to create a fresh demo; do not rely on an old display token staying valid through judging.
+- The owner-confirmed outside walkthrough used automation. A separate human test is waived. Physical bookstore use, representative assistive-technology acceptance and business benefit remain unproven.
+- The agentic integration is an external agent using bounded MCP tools. There is no embedded LLM planner, genuine LLM-only comparator or real-merchant beta.
+- The health endpoint's static publicRelease field still reports not-verified. Source identity, deployment/workflow and cleanup receipts supply release evidence; that field is not the release oracle.
+- Provider licensing, account limits and service availability remain subject to applicable terms. Private caching guidance does not authorize arbitrary public redistribution. No raw provider responses or credentials are published here.
+
+## Historical verification — older candidates
+
+The dated reports below describe their original source and configuration. Their statements about current deployment, remaining test allowance or pending submission are historical; the October 29 release summary above governs the current status. Preserve them as evidence, not as new authorization to run old live/hosted scripts.
+
 # October 28, 2026: MCP candidate verification
 
 Candidate SS-RC-20261028-MCP-42b03880b645. Runtime SHA-256: `42b03880b6453acc075a038962bd87be1b5a68899f078e25209bdb14cc987fbe`.
